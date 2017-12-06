@@ -1,0 +1,134 @@
+<!-- Content Wrapper - Left Sidenav 2-->
+<div id="content_wrapper" class="leftSidenav2-wrapper chat-wrapper">
+    <!--// Sidenav component container-->
+    <md-sidenav-container class="sidenav-container">
+        <!-- Sidenav -->
+        <md-sidenav #leftSidenav2 mode="{{navMode}}" class="sidenav">
+            <aside id="leftSidenav2">
+                <header class="header">
+                    <form name="search" role="search" action="" id="filter_contact_wrapper">
+                        <div class="form-group" [ngClass]="{'is-focused': isFocused }">
+                            <span class="header-search-icon">
+                                <i class="zmdi zmdi-search"></i>
+                            </span>
+                            <input type="text" placeholder="Enter name or email..." class="form-control filter-contacts" [(ngModel)]="term" name="term"
+                                   autocomplete="off" (focus)="isFocused = !isFocused" (blur)="isFocused = false;">
+                        </div>
+                        <button type="submit" class="hidden btn btn-default">Submit</button>
+                    </form>
+                </header>
+                <nav class="submenu">
+                    <ul class="list-group">
+                        <!-- <li class="list-group-item" *ngFor="let thread of threads | filter:term" md-ripple (click)="selectUser(thread.threadId,thread.userId)"> -->
+                        <li class="list-group-item" *ngFor="let data of chatData.content" md-ripple (click)="onClick(data.customerId,data.businessId)">
+                            <!-- <span class="float-left"><img src="{{thread.img}}" alt="" class="rounded-circle max-w-40 m-r-10"></span> -->
+                            <span class="float-left">
+                                <img src="/assets/img/profiles/avatar.png" class="rounded-circle max-w-40 m-r-10">
+                            </span>
+                            <div class="list-group-item-body">
+                                <div class="list-group-item-heading">{{data.customerId}}</div>
+                                <!-- <div class="list-group-item-text">{{thread.email}}</div> -->
+                            </div>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+        </md-sidenav>
+        <!-- /END Sidenav -->
+        <!-- Page Content -->
+        <div class="content">
+            <div class="header-wrapper header-sm">
+                <header class="container-fluid">
+                    <div class="row">
+                        <div class="col">
+                            <h1></h1>
+                        </div>
+                    </div>
+                </header>
+                <ul class="actions icons top-left">
+                    <li>
+                        <a href="javascript:void(0)" (click)="leftSidenav2.toggle()">
+                            <i class="zmdi zmdi-menu"></i>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="activeProfile" *ngIf="activeChat.value">
+                    <li>
+                        <a href="javascript:void(0)">
+                            <img class="rounded-circle max-w-40" src="/assets/img/profiles/avatar.png" />
+                            <!-- <img class="rounded-circle max-w-40" src="{{activeProfile.img}}" alt="{{activeProfile.displayName}}" /> -->
+                            <span class="display-name">{{customerId}}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="content-body">
+                <div class="chat" *ngIf="activeSearch">
+
+                    <!-- <p *ngIf="data1.data.content.media">{{historyData.content.data.content.media.url}}</p> -->
+                    <div id="messages" class="bs-example" #scrollMe (scroll)="onScroll($event)">
+                        <div class="bubble-wrapper" *ngFor="let data1 of currentChatThread()">
+                            <img [src]="getMsgImage(data1.meta.senderType)" class="avatar" [class.you]="isYou(data1.meta.senderType)" [class.me]="isMe(data1.meta.senderType)" />
+                            <div class="bubble" [class.chat-bubble-you]="isYou(data1.meta.senderType)" [class.chat-bubble-me]="isMe(data1.meta.senderType)">
+                                <div [ngSwitch]="data1.data.type">
+                                    <div *ngSwitchCase="0">
+                                        <p>{{data1.data.content.text}}</p>
+                                        <p> URL </p>
+                                    </div>
+                                    <div *ngSwitchCase="2">
+                                        <div [ngSwitch]="data1.data.content.inputType">
+                                            <div *ngSwitchCase="0">
+                                                <p>{{data1.data.content.input ? data1.data.content.input.val : 'NA'}}</p>
+                                            </div>
+                                            <div *ngSwitchCase="1">
+                                            </div>
+                                            <div *ngSwitchCase="2">
+                                            </div>
+                                            <div *ngSwitchCase="3">
+                                            </div>
+                                            <div *ngSwitchDefault>
+                                                <p>Unsupported Format {{data1.data.content.inputType}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="author">
+                                    {{ data1.meta.timestamp | date:"MM/dd/yyyy hh:mm a" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="chat-empty" *ngIf="false">
+                        <div class="chat-icon">
+                        </div>
+                        <header>
+                            <h3>Chat Application</h3>
+                            <p>
+                                Select a contact to begin chat.
+                            </p>
+                        </header>
+                    </section>
+                </div>
+            </div>
+            <!--  Chat Input Wrapper -->
+            <div id="chat_input_wrapper" *ngIf="activeSearch">
+                <form class="form-horizontal p-b-30">
+                    <div class="form-group row">
+                        <div class="col">
+                            <md-input-container floatPlaceholder="auto" class="float-auto">
+                                <input mdInput class="block" placeholder="Send a message" name="newMessage" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+                                       autocomplete="off">
+                                <button md-ripple mdSuffix type="button" class="btn btn-primary btn-fab btn-fab-sm btn-suffix" (click)="sendMessage()">
+                                    <i class="zmdi zmdi-mail-send"></i>
+                                </button>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </md-sidenav-container>
+    <!-- /END Sidenav component container -->
+</div>
+<!-- /END Content Wrapper - Left Sidenav 2-->
