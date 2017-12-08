@@ -10,21 +10,17 @@ export class ConfigService {
 
 	constructor() {
 		this.app = {
-			
-			name: "ANA Chat Panel",			
-			webSocketEndPoint:"http://anachatagents-dev.2bm4ipugmm.ap-south-1.elasticbeanstalk.com/chatagents",
-			
-            apiGatewayEndPoint: "http://chat-dev.nowfloatsdev.com",
-            
-
-        };
+			name: "ANA Chat Panel",
+			webSocketEndPoint: "http://anachatagents-dev.2bm4ipugmm.ap-south-1.elasticbeanstalk.com/chatagents",
+			apiGatewayEndPoint: "http://chat-dev.nowfloatsdev.com",
+		};
 		this.profile = {
 			user: "Fredrick Palmer",
-			userId:"160d0948-62a7-4439-98aa-0b95f1143b0d",
-			userEmail:"fredrick@materiallab.pro",
-			userImg:"/assets/img/profiles/18.jpg",
-			userTitle:"Frontend Developer",
-			accessToken:"",
+			userId: "160d0948-62a7-4439-98aa-0b95f1143b0d",
+			userEmail: "fredrick@materiallab.pro",
+			userImg: "/assets/img/profiles/18.jpg",
+			userTitle: "Frontend Developer",
+			accessToken: "",
 			isProfileVisible: true,
 		};
 		this.appLayout = {

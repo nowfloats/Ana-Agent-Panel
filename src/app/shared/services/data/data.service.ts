@@ -25,7 +25,6 @@ export class DataService {
 		let headers = new Headers({ 'access-token': this._config.profile.accessToken });
 		let options = new RequestOptions({ headers: headers });
 		return this.http.get(this._config.app.webSocketEndPoint + "/api/agents/" + this._config.profile.userId + "/chats", options).map(res => res.json());
-
 	};
 
 	getHistory(customerId, businessId, pageSize, pageNumber, timeStamp?: number) {
