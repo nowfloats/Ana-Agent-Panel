@@ -2,11 +2,8 @@ import { Injectable } from '@angular/core';
 import * as SockJS from 'sockjs-client';
 import * as StompJS from 'stompjs';
 import { ConfigService } from './config.service'
-import { DataService } from '../data/data.service'
+import { DataService, ChatCustomerInfo } from '../data/data.service'
 import { parse } from 'date-fns';
-//import { ChatMessageVM, MessageStatus } from '../models/ana-chat-vm.models';
-//import { ANAChatMessage } from '../models/ana-chat.models';
-//import { UtilitiesService } from '../services/utilities.service';
 
 @Injectable()
 export class StompService {
@@ -17,31 +14,18 @@ export class StompService {
 	private timer: NodeJS.Timer;
 	private stompHeaders: any = {};
 	public liveMsgStorage: {};
-	//public chatData={};
-	public chatDataNew = {} as ChatsResponse;
-	//chatDataNew.content=[];
 	connectionStatus: StompConnectionStatus;
 
 	constructor(private _config: ConfigService, private _data: DataService) { }
 
-
-	public connect(config?: StompConfig, chatData?: ChatsResponse) {
-		//this.clearTimer();
-
-		//;
-		//config.customerId="agent1";
-		//console.log(chatData);
+	public connect(config?: StompConfig) {
 		this.configure(config);
-		//console.log(JSON.stringify(chatData))
-		this.chatDataNew = chatData;
 		if (!this.client)
 			throw Error('Client not configured!');
 		this.debug('Connecting...');
 		this.connectionStatus = StompConnectionStatus.Connecting;
 		this.stompHeaders = { user_id: this._config.profile.userId };
 		this.client.connect(this.stompHeaders, this.onConnect, this.onError);
-
-		console.log("Connnected")
 	}
 	private clearTimer() {
 		if (this.timer) {
@@ -75,17 +59,17 @@ export class StompService {
 	}
 	//Should be an arrow function to follow class context
 	private onConnect = (frame: StompJS.Frame) => {
-		//	this.clearTimer();
+		console.log("Socket Connected");
 
 		if (this.connectionStatus == StompConnectionStatus.Connected)
 			return;
-		//console.log(this.chatDataNew)
+
 		try {
 			this.subscribe();
-			this.connectionStatus = StompConnectionStatus.Connected;
+			if (this.handleConnect)
+				this.handleConnect();
 
-			//	if (this.handleConnect)
-			//		this.handleConnect();
+			this.connectionStatus = StompConnectionStatus.Connected;
 		} catch (e) {
 			this.debug(e);
 			this.connectionStatus = StompConnectionStatus.Disconnected;
@@ -93,9 +77,8 @@ export class StompService {
 	}
 
 	private subscribe = () => {
-		//this.stompHeaders['user_id'] = this._config.profile.userId;
+		this.stompHeaders['user_id'] = this._config.profile.userId;
 		let userId = this._config.profile.userId
-
 		this.stompHeaders['id'] = this.count++;
 
 		this.client.subscribe('/topic/presence', (message) => {
@@ -104,49 +87,27 @@ export class StompService {
 
 		this.stompHeaders['id'] = this.count++;
 		this.client.subscribe('/queue/events/user/' + this._config.profile.userId, (message) => {
-			console.log(JSON.parse(message.body));
 			var eventMsg = JSON.parse(message.body);
-			console.log("subscribed for agent events" + this._config.profile.userId)
-			//this.liveMsgStorage=liveMsg;
 			for (var i = 0; i < eventMsg.events.length; i++) {
 				var eventType = eventMsg.events[i].type;
 				if (eventType == 5) {
-					//liveMsg.content.customerId=liveMsg.meta.sender.id;
 					this.stompHeaders['id'] = this.count++;
 					this.client.subscribe(eventMsg.events[i].channel, (liveStompMessage) => {
-						console.log("live message");
-						console.log(liveStompMessage);
-						//console.log("subscribed for user" + this.chatDataNew.content[i].customerId)
-
 						this.onMessage(liveStompMessage);
 					}, this.stompHeaders);
 				}
 			}
-
 		}, this.stompHeaders);
-
-		//	debugger;
-		this.chatDataNew.content.forEach(x => {
-			this.stompHeaders['id'] = this.count++;
-
-			this.client.subscribe('/topic/chat/customer/' + x.customerId + "/business/" + x.businessId, (message) => {
-				console.log("user message");
-				console.log(JSON.parse(message.body));
-				//console.log("subscribed for user" + this.chatDataNew.content[i].customerId)
-				this.onMessage(JSON.parse(message.body));
-			}, this.stompHeaders);
-
-		});
-
-
-		// 	this.stompHeaders['id'] = this.uuidv4();
-		// 	this.client.subscribe('/queue/events/user/' + custId, (message) => {
-		// 		this.onAck(message.headers['tid']);
-		// 	}, this.stompHeaders);
-
-
 	}
 
+	agentSubscriptions(agents: ChatCustomerInfo[]) {
+		agents.forEach(agent => {
+			this.stompHeaders['id'] = this.count++;
+			this.client.subscribe('/topic/chat/customer/' + agent.customerId + "/business/" + agent.businessId, (message) => {
+				this.onMessage(JSON.parse(message.body));
+			}, this.stompHeaders);
+		});
+	}
 
 	private onError = (error: string | StompJS.Message) => {
 		this.connectionStatus = StompConnectionStatus.Disconnected;
@@ -169,48 +130,22 @@ export class StompService {
 		}, t);
 	}
 
-	// private onAck = (msgAckId: string) => {
-	// 	this.debug("Ack Msg Id: " + msgAckId);
-	// 	//if (this.handleAck)
-	// 		this.handleAck(msgAckId);
-	// };
-
 	private msgsIds: string[] = [];
 	private onMessage = (messageBody: any) => {
-		if (this.handleMessageReceived) {
-			let anaMsg = messageBody;
-			// 	let anaMsg:{
-			// 		meta:{
-			// 			id:number
-			// 		}
-
-			// 	}
-			// 	anaMsg=messageBody
-			// 	if (this.msgsIds.indexOf(anaMsg.meta.id) == -1) { //handle message only if it is not already handled
-			// 		this.msgsIds.push(anaMsg.meta.id);
-			this.handleMessageReceived(anaMsg);
-			//}
-		}
+		if (this.handleMessageReceived)
+			this.handleMessageReceived(messageBody);
 	}
 
 	sendMessage(msg: any) {
-		this.debug("Sent Socket Message: ");
-		this.debug(msg);
-
 		let headers = this.stompHeaders;
 		this.client.send(`/app/message`, headers, JSON.stringify(msg));
-		console.log(JSON.stringify(msg))
 	}
 
-	// 	handleConnect: () => void;
-	handleMessageReceived: (message: any) => any;
-	// 	handleAck: (messageAckId: string) => any;
-	// 
+	handleMessageReceived: (message: any) => void;
+	handleConnect: () => void;
 }
 export interface StompConfig {
 	endpoint: string;
-	customerId: string;
-	businessId: string;
 	debug: boolean;
 }
 

@@ -7,3 +7,9 @@
 @import '../node_modules/material-design-iconic-font/dist/css/material-design-iconic-font.css';
 //== App
 @import "./app/shared/styles/app";
+
+
+//Explicit 
+button, input[type=button], a{
+ cursor: pointer;
+}

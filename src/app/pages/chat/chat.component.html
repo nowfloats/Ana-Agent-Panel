@@ -12,7 +12,7 @@
                                 <i class="zmdi zmdi-search"></i>
                             </span>
                             <input type="text" placeholder="Enter name or email..." class="form-control filter-contacts" [(ngModel)]="term" name="term"
-                                   autocomplete="off" (focus)="isFocused = !isFocused" (blur)="isFocused = false;">
+                                autocomplete="off" (focus)="isFocused = !isFocused" (blur)="isFocused = false;">
                         </div>
                         <button type="submit" class="hidden btn btn-default">Submit</button>
                     </form>
@@ -20,13 +20,13 @@
                 <nav class="submenu">
                     <ul class="list-group">
                         <!-- <li class="list-group-item" *ngFor="let thread of threads | filter:term" md-ripple (click)="selectUser(thread.threadId,thread.userId)"> -->
-                        <li class="list-group-item" *ngFor="let data of chatData.content" md-ripple (click)="onClick(data.customerId,data.businessId)">
+                        <li class="list-group-item" *ngFor="let customer of customersList" md-ripple (click)="onCustomerSelected(customer)">
                             <!-- <span class="float-left"><img src="{{thread.img}}" alt="" class="rounded-circle max-w-40 m-r-10"></span> -->
                             <span class="float-left">
                                 <img src="/assets/img/profiles/avatar.png" class="rounded-circle max-w-40 m-r-10">
                             </span>
                             <div class="list-group-item-body">
-                                <div class="list-group-item-heading">{{data.customerId}}</div>
+                                <div class="list-group-item-heading">{{customer.customerId}}</div>
                                 <!-- <div class="list-group-item-text">{{thread.email}}</div> -->
                             </div>
                         </li>
@@ -52,33 +52,31 @@
                         </a>
                     </li>
                 </ul>
-                <ul class="activeProfile" *ngIf="activeChat.value">
+                <ul class="activeProfile" *ngIf="selectedCustomer">
                     <li>
                         <a href="javascript:void(0)">
                             <img class="rounded-circle max-w-40" src="/assets/img/profiles/avatar.png" />
                             <!-- <img class="rounded-circle max-w-40" src="{{activeProfile.img}}" alt="{{activeProfile.displayName}}" /> -->
-                            <span class="display-name">{{customerId}}</span>
+                            <span class="display-name">{{selectedCustomer.customerId}}</span>
                         </a>
                     </li>
                 </ul>
             </div>
             <div class="content-body">
-                <div class="chat" *ngIf="activeSearch">
-
-                    <!-- <p *ngIf="data1.data.content.media">{{historyData.content.data.content.media.url}}</p> -->
+                <div class="chat" *ngIf="selectedCustomer">
                     <div id="messages" class="bs-example" #scrollMe (scroll)="onScroll($event)">
-                        <div class="bubble-wrapper" *ngFor="let data1 of currentChatThread()">
-                            <img [src]="getMsgImage(data1.meta.senderType)" class="avatar" [class.you]="isYou(data1.meta.senderType)" [class.me]="isMe(data1.meta.senderType)" />
-                            <div class="bubble" [class.chat-bubble-you]="isYou(data1.meta.senderType)" [class.chat-bubble-me]="isMe(data1.meta.senderType)">
-                                <div [ngSwitch]="data1.data.type">
+                        <div class="bubble-wrapper" *ngFor="let chatMsg of currentChatThread()">
+                            <img [src]="getMsgImage(chatMsg.meta.senderType)" class="avatar" [class.you]="isYou(chatMsg.meta.senderType)" [class.me]="isMe(chatMsg.meta.senderType)"
+                            />
+                            <div class="bubble" [class.chat-bubble-you]="isYou(chatMsg.meta.senderType)" [class.chat-bubble-me]="isMe(chatMsg.meta.senderType)">
+                                <div [ngSwitch]="chatMsg.data.type">
                                     <div *ngSwitchCase="0">
-                                        <p>{{data1.data.content.text}}</p>
-                                        <p> URL </p>
+                                        <p>{{chatMsg.data.content.text}}</p>
                                     </div>
                                     <div *ngSwitchCase="2">
-                                        <div [ngSwitch]="data1.data.content.inputType">
+                                        <div [ngSwitch]="chatMsg.data.content.inputType">
                                             <div *ngSwitchCase="0">
-                                                <p>{{data1.data.content.input ? data1.data.content.input.val : 'NA'}}</p>
+                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : 'NA'}}</p>
                                             </div>
                                             <div *ngSwitchCase="1">
                                             </div>
@@ -87,25 +85,24 @@
                                             <div *ngSwitchCase="3">
                                             </div>
                                             <div *ngSwitchDefault>
-                                                <p>Unsupported Format {{data1.data.content.inputType}}</p>
+                                                <p>Unsupported Format {{chatMsg.data.content.inputType}}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="author">
-                                    {{ data1.meta.timestamp | date:"MM/dd/yyyy hh:mm a" }}
+                                    {{ chatMsg.meta.timestamp | date:"MM/dd/yyyy hh:mm a" }}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <section class="chat-empty" *ngIf="false">
-                        <div class="chat-icon">
-                        </div>
+                    <section class="chat-empty" *ngIf="!selectedCustomer">
+                        <div class="chat-icon"></div>
                         <header>
                             <h3>Chat Application</h3>
                             <p>
-                                Select a contact to begin chat.
+                                Select a customer to begin chat.
                             </p>
                         </header>
                     </section>
@@ -118,7 +115,7 @@
                         <div class="col">
                             <md-input-container floatPlaceholder="auto" class="float-auto">
                                 <input mdInput class="block" placeholder="Send a message" name="newMessage" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
-                                       autocomplete="off">
+                                    autocomplete="off">
                                 <button md-ripple mdSuffix type="button" class="btn btn-primary btn-fab btn-fab-sm btn-suffix" (click)="sendMessage()">
                                     <i class="zmdi zmdi-mail-send"></i>
                                 </button>

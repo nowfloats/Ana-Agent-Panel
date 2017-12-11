@@ -3,8 +3,13 @@ declare var $: any;
 
 @Injectable()
 export class ConfigService {
-	public app: any;
-	public profile: any;
+	public app: {
+		name: string,
+		webSocketEndPoint: string,
+		apiGatewayEndPoint: string
+	};
+	public profile: UserProfile;
+
 	public appLayout: any;
 	public breakpoint: any;
 
@@ -13,15 +18,6 @@ export class ConfigService {
 			name: "ANA Chat Panel",
 			webSocketEndPoint: "http://anachatagents-dev.2bm4ipugmm.ap-south-1.elasticbeanstalk.com/chatagents",
 			apiGatewayEndPoint: "http://chat-dev.nowfloatsdev.com",
-		};
-		this.profile = {
-			user: "Fredrick Palmer",
-			userId: "160d0948-62a7-4439-98aa-0b95f1143b0d",
-			userEmail: "fredrick@materiallab.pro",
-			userImg: "/assets/img/profiles/18.jpg",
-			userTitle: "Frontend Developer",
-			accessToken: "",
-			isProfileVisible: true,
 		};
 		this.appLayout = {
 			isApp_Boxed: false,
@@ -37,4 +33,15 @@ export class ConfigService {
 			mobile: 576
 		};
 	}
+}
+
+
+export interface UserProfile {
+	userId: string,
+	user: string,
+	userEmail: string,
+	userImg?: string,
+	userTitle?: string,
+	accessToken: string,
+	isProfileVisible?: boolean
 }

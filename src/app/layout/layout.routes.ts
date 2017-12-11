@@ -1,6 +1,5 @@
 import { Routes, RouterModule } from "@angular/router";
 import { LayoutComponent } from "./layout.component";
-import { LoginService } from "app/shared/services/login.service";
 import { LoginComponent } from "app/pages/authentication/login/login.component";
 import { LoginModule } from "app/pages/authentication/login/login.module";
 const LAYOUT_ROUTES: Routes = [
@@ -18,7 +17,6 @@ const LAYOUT_ROUTES: Routes = [
 	},
 	{
 		path: "chat",
-		canActivate: [LoginService],
 		loadChildren: "../pages/chat/chat.module#ChatModule"
 	},
 	{ path: "**", redirectTo: "" }

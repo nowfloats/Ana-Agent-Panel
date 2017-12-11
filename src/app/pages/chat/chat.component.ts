@@ -15,12 +15,12 @@ import {
 	TemplateRef,
 	NgZone, DoCheck
 } from "@angular/core";
-//import { ConfigService} from "../../shared/services/config/config.service"
 import { Inject } from "@angular/core"
 import { DOCUMENT } from "@angular/platform-browser"
 import { StompService, StompConfig, ChatsResponse } from "../../shared/services/config/stomp.service"
 import { GlobalState } from "../../app.state";
-import { ConfigService } from "../../shared/services/config/config.service";
+import { ConfigService, UserProfile } from "../../shared/services/config/config.service";
+import { ChatCustomerInfo } from '../../shared/services/data/data.service';
 import { MdSidenav } from "@angular/material";
 import { Observable } from "rxjs";
 import { DataService } from "../../shared/services/data/data.service";
@@ -28,6 +28,8 @@ import { uuid } from "../../shared/util/uuid";
 import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
+import { Router } from "@angular/router";
+
 @Component({
 	selector: ".content_inner_wrapper",
 	templateUrl: "./chat.component.html",
@@ -53,8 +55,7 @@ export class ChatComponent implements OnInit {
 	public newMessage: string;
 	value: boolean
 	closeResult: string;
-	customerId: any;
-	businessId: any;
+
 	timestamp: any;
 	activeSearch: boolean = false
 	textArea: boolean = false;
@@ -66,47 +67,37 @@ export class ChatComponent implements OnInit {
 			}
 		]
 	} as ChatsResponse;
-	activeChat = {} as cData;
-	tempData = {}
-	historyData: any = {
-		content: []
-	};
+	tempData = {};
 	chatThreads: {
 		[custId: string]: any[]
 	} = {};
+
+	selectedCustomer: ChatCustomerInfo;
+	customersList: ChatCustomerInfo[];
+
 	statusText: any
 	lastTimeStamp: string;
-	config: StompConfig = {} as StompConfig;
 	public navIsFixed: boolean = false;
 	public scrollbarOptions = { axis: "yx", theme: "minimal-dark" };
 
 	@ViewChild("scrollMe") private myScrollContainer: ElementRef;
 
 	constructor(
-		private _state: GlobalState,
-		public _config: ConfigService,
-		private _elementRef: ElementRef,
-		private _DataService: DataService,
+		private state: GlobalState,
+		public configService: ConfigService,
+		private elementRef: ElementRef,
+		private dataService: DataService,
 		private modalService: NgbModal,
-		private _StompService: StompService,
+		private stompService: StompService,
+		private router: Router,
 		@Inject(DOCUMENT) private _doc: Document
 	) {
-		this._StompService.handleMessageReceived = (msg) => {
-			// if(msg.meta.sender.id==this.customerId)
-			// {
-			// 	this.historyData.content.push(msg)
-			// 	console.log("new history data"+this.historyData.content)
-			// 	console.log(this.historyData)
-			// }
-			console.log(JSON.stringify(msg))
-			if (!this.chatThreads[msg.meta.sender.id]) {
+		this.stompService.handleMessageReceived = (msg) => {
+			if (!this.chatThreads[msg.meta.sender.id])
 				this.chatThreads[msg.meta.sender.id] = [];
-			}
-			this.chatData.content[this.chatData.content.length].push(msg.meta.sender.id);
 			this.chatThreads[msg.meta.sender.id].push(msg.data);
 		};
 	}
-
 
 	static uuidv4() {
 		return (<any>[1e7] + -1e3 + -4e3 + -8e3 + -1e11).toString().replace(/[018]/g,
@@ -114,20 +105,13 @@ export class ChatComponent implements OnInit {
 		)
 	}
 
-	onClick(customerId, businessId) {
-		//console.log(customerId+"      "+businessId)
-		//this.chatThread.custId=customerId;
-		this.activeChat.value = true;
-		this.activeSearch = true;
-		this.customerId = customerId;
-		this.businessId = businessId;
-		//debugger;
-		if (!this.chatThreads[customerId]) {
-			this._DataService.getHistory(customerId, businessId, 5, 0).subscribe(resData => {
+	onAgentSelected(agent: ChatCustomerInfo) {
+		this.selectedCustomer = agent;
+
+		if (!this.chatThreads[agent.customerId]) {
+			this.dataService.getHistory(agent.customerId, agent.businessId, 5, 0).subscribe(resData => {
 				try {
-					this.chatThreads[customerId] = resData.content.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));;
-					//this.historyData.content = this.chatThreads[customerId]
-					//console.log(this.historyData.content)
+					this.chatThreads[agent.customerId] = resData.content.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
 				}
 				catch (e) {
 					console.log(e);
@@ -135,13 +119,9 @@ export class ChatComponent implements OnInit {
 				}
 			});
 		}
-		else {
-
-		}
 	}
 
 	ngOnInit() {
-
 		if (window.innerWidth < 992) {
 			this.navMode = "over";
 			this.leftSidenav2.opened = false;
@@ -150,19 +130,24 @@ export class ChatComponent implements OnInit {
 			this.navMode = "side";
 			this.leftSidenav2.open();
 		}
-		this._DataService.getChatDetails().subscribe((resData) => {
+		if (!this.configService.profile) {
+			this.router.navigateByUrl('/');
+			return;
+		}
+		this.dataService.getChatDetails().subscribe((resData) => {
 			if (resData.error) {
 				alert(resData.error.message);
 			} else {
-				this.chatData = (resData.data);
-				console.log(this.chatData)
-				this.activeChat.value = false;
-				this.config.debug = true;
-				this._StompService.connect(this.config, this.chatData);
+				this.customersList = resData.data.content;
+				this.stompService.handleConnect = () => {
+					this.stompService.agentSubscriptions(this.customersList);
+				};
+				this.stompService.connect({
+					debug: true,
+					endpoint: this.configService.app.webSocketEndPoint
+				});
 			}
 		});
-
-		this.activeChat.value = false;
 	}
 
 	scrollToBottom(): void {
@@ -190,7 +175,6 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
-
 	isMe(senderType) {
 		if (senderType != 0) {
 			return true;
@@ -215,10 +199,8 @@ export class ChatComponent implements OnInit {
 	}
 
 	sendMessage() {
-		console.log(this.newMessage)
 		let chatThread = this.currentChatThread();
 		let lastMsg = chatThread[chatThread.length - 1];
-		this.recipientMedium = lastMsg.meta.recipient.medium;
 
 		let msg = {
 			"data": {
@@ -232,12 +214,12 @@ export class ChatComponent implements OnInit {
 			},
 			"meta": {
 				"sender": {
-					"id": this.businessId,
+					"id": this.selectedCustomer.businessId,
 					"medium": 3
 				},
 				"recipient": {
-					"id": this.customerId,
-					"medium": this.recipientMedium
+					"id": this.selectedCustomer.customerId,
+					"medium": lastMsg.meta.recipient.medium
 				},
 				"senderType": 1,
 				"id": ChatComponent.uuidv4(),
@@ -247,27 +229,15 @@ export class ChatComponent implements OnInit {
 			}
 		};
 
-		// this.historyData.content.push(msg)
-		// for(var i=0;i<this.historyData.content.length;i++)
-		// {
-		// 	console.log("new history"+this.historyData.content[i]);
-		// }
-		debugger;
-		//console.log(msg)
-		this._StompService.sendMessage(msg);
+		this.stompService.sendMessage(msg);
 		chatThread.push(msg);
-		//this.historyData.content = this.chatThreads[this.customerId].push(msg);
-
-		//this._DataService.getHistory(this.customerId, this.businessId, 5, 0, this.timestamp).subscribe(resData => {
-		//    this.historyData = resData
-		//    console.log(this.historyData)
-		//})
-		////console.log(resData.content)
 		this.newMessage = null;
 	}
 
 	currentChatThread() {
-		return this.chatThreads[this.customerId];
+		if (this.selectedCustomer)
+			return this.chatThreads[this.selectedCustomer.customerId];
+		return null;
 	}
 
 	@HostListener("window:resize", ["$event"])
@@ -289,43 +259,3 @@ export interface meta {
 		mandatory
 	}
 }
-
-// export class Data {
-
-// }
-// export interface content {
-// 	data: Data,
-// 	meta: {
-// 		sender: {
-// 			id: string,
-// 			medium: number
-// 		},
-// 		recipient: {
-// 			id: string,
-// 			medium: number
-// 		},
-
-// 		senderType: number,
-// 		id: string,
-// 		sessionId: string,
-// 		timestamp: string,
-// 		responseTo: string
-// 	}
-// }
-
-// export interface message {
-// 	content: content[],
-// 	number: number,
-// 	numberOfElements: number,
-// 	size: number,
-// 	totalElements: number,
-// 	isFirst: boolean,
-// 	isLast: boolean,
-// 	totalPages: number
-// }
-
-export interface cData {
-	value: boolean,
-	name: string
-
-};

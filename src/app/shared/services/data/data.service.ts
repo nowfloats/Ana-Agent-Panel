@@ -8,23 +8,16 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/toPromise";
 import "rxjs/add/operator/catch";
 import { timestamp } from "rxjs/operator/timestamp";
-//import { ConfigService } from "../config/config.service"
+
 @Injectable()
 export class DataService {
 
 	baseURL: string;
 	constructor(private http: Http, private _config: ConfigService) { }
 
-	// getProfile = (): Observable<Response> => {
-	//   return this.http
-	//     .get("api/my-profile")
-	//     .map(res => res.json());
-	// };
-
 	getChatDetails() {
-		let headers = new Headers({ 'access-token': this._config.profile.accessToken });
-		let options = new RequestOptions({ headers: headers });
-		return this.http.get(this._config.app.webSocketEndPoint + "/api/agents/" + this._config.profile.userId + "/chats", options).map(res => res.json());
+		return this.http.get(this._config.app.webSocketEndPoint + "/api/agents/" + this._config.profile.userId + "/chats")
+			.map(res => res.json() as AgentChatsResponse);
 	};
 
 	getHistory(customerId, businessId, pageSize, pageNumber, timeStamp?: number) {
@@ -39,37 +32,71 @@ export class DataService {
 			myparams.append("page", pageNumber);
 
 		this.baseURL = this._config.app.apiGatewayEndPoint;
-		// console.log("from history api" + myparams);
 		return this.http.get(this.baseURL + "/chatdata/messages?" + myparams).map((res: Response) => res.json());
 	};
-	//   getContactsCardDemo = (): Observable<Response> => {
-	//    return this.http
-	//        .get("api/my-contacts")
-	//        .map(res => res.json());
-	//  };
-	//    getMailDemo = (): Observable<Response> => {
-	//      return this.http
-	//        .get("api/mail")
-	//        .map(res => res.json());
-	//    };
-	//    getListCardDemo = (): Observable<Response> => {
-	//      return this.http
-	//        .get("api/list")
-	//        .map(res => res.json());
-	//    };
-	// 	 getChatContacts = (): Observable<Response> => {
-	// 	 	return this.http
-	// 	 		.get("api/chat-messages")
-	// 	 		.map(res => res.json());
-	// 	 };
-	// 	getTabsOverCard = (): Observable<Response> => {
-	// 	 	return this.http
-	// 	 		.get("api/tabs-over-card")
-	// 	 		.map(res => res.json());
-	// 	 };
-	// 	 getContacts = (): Observable<Response> => {
-	// 	 	return this.http
-	// 	 		.get("api/my-contacts")
-	// 	 		.map(res => res.json());
-	// 	 };
+
+	login(username, password) {
+		return this.http.post(this._config.app.apiGatewayEndPoint + "/auth/login", {
+			username: username,
+			password: password
+		}).map(res => res.json() as LoginResponse)
+	}
+}
+
+export interface LoginData {
+	userId: string;
+	username: string;
+	accessToken: string;
+	name: string;
+	roles: UserRole[];
+}
+
+export interface ErrorInfo {
+	code: string;
+	status: number;
+	message: string;
+	timestamp: number;
+	errors: any[];
+}
+
+export interface LoginResponse {
+	error: ErrorInfo;
+	data: LoginData;
+}
+
+export interface UserRole {
+	id: number;
+	role: string;
+	description: string;
+	label: string;
+	enabled: boolean;
+}
+
+
+export interface ChatCustomerInfo {
+	id: number;
+	customerId: string;
+	businessId: string;
+	agentId: string;
+	assignedAt: any;
+	unreadCount: number;
+	status: number;
+	created_at: any;
+	last_message_time: any;
+}
+
+export interface AgentChatsData {
+	content: ChatCustomerInfo[];
+	last: boolean;
+	totalElements: number;
+	totalPages: number;
+	first: boolean;
+	numberOfElements: number;
+	size: number;
+	number: number;
+}
+
+export interface AgentChatsResponse {
+	data: AgentChatsData;
+	error: ErrorInfo;
 }
