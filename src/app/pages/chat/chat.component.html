@@ -6,7 +6,7 @@
         <md-sidenav #leftSidenav2 mode="{{navMode}}" class="sidenav">
             <aside id="leftSidenav2">
                 <header class="header">
-                    <form name="search" role="search" action="" id="filter_contact_wrapper">
+                    <form name="search" hidden role="search" action="" id="filter_contact_wrapper">
                         <div class="form-group" [ngClass]="{'is-focused': isFocused }">
                             <span class="header-search-icon">
                                 <i class="zmdi zmdi-search"></i>
@@ -16,18 +16,22 @@
                         </div>
                         <button type="submit" class="hidden btn btn-default">Submit</button>
                     </form>
+                    <h2 style="margin: 10px 25px;">Agent Chats</h2>
                 </header>
                 <nav class="submenu">
                     <ul class="list-group">
                         <!-- <li class="list-group-item" *ngFor="let thread of threads | filter:term" md-ripple (click)="selectUser(thread.threadId,thread.userId)"> -->
-                        <li class="list-group-item" *ngFor="let customer of customersList" md-ripple (click)="onCustomerSelected(customer)">
+                        <li class="list-group-item" *ngFor="let customer of customersList" [class.list-item-selected]="isCustomerSelected(customer)"
+                            md-ripple (click)="onCustomerSelected(customer)">
                             <!-- <span class="float-left"><img src="{{thread.img}}" alt="" class="rounded-circle max-w-40 m-r-10"></span> -->
                             <span class="float-left">
                                 <img src="/assets/img/profiles/avatar.png" class="rounded-circle max-w-40 m-r-10">
                             </span>
                             <div class="list-group-item-body">
-                                <div class="list-group-item-heading">{{customer.customerId}}</div>
-                                <!-- <div class="list-group-item-text">{{thread.email}}</div> -->
+                                <div class="list-group-item-heading">{{customer.customerId}}
+                                    <b *ngIf="customer.unreadCount" style="color:crimson">({{customer.unreadCount}})</b>
+                                </div>
+                                <div class="list-group-item-text">{{customer.assignedAt | date:'medium'}}</div>
                             </div>
                         </li>
                     </ul>
@@ -61,6 +65,13 @@
                         </a>
                     </li>
                 </ul>
+                <ul class="actions icons top-right">
+                    <li>
+                        <button class="btn btn-default" (click)="logout()">
+                            Logout
+                        </button>
+                    </li>
+                </ul>
             </div>
             <div class="content-body">
                 <div class="chat" *ngIf="selectedCustomer">
@@ -76,16 +87,23 @@
                                     <div *ngSwitchCase="2">
                                         <div [ngSwitch]="chatMsg.data.content.inputType">
                                             <div *ngSwitchCase="0">
-                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : 'NA'}}</p>
+                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="1">
+                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="2">
+                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="3">
+                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                            </div>
+                                            <div *ngSwitchCase="10">
+                                                <!-- Options -->
+                                                <p>{{chatMsg.data.content.input ? optionsText(chatMsg) : '-'}}</p>
                                             </div>
                                             <div *ngSwitchDefault>
-                                                <p>Unsupported Format {{chatMsg.data.content.inputType}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">Unsupported Format</p>
                                             </div>
                                         </div>
                                     </div>
@@ -109,14 +127,15 @@
                 </div>
             </div>
             <!--  Chat Input Wrapper -->
-            <div id="chat_input_wrapper" *ngIf="activeSearch">
+            <div id="chat_input_wrapper" *ngIf="selectedCustomer">
                 <form class="form-horizontal p-b-30">
                     <div class="form-group row">
                         <div class="col">
                             <md-input-container floatPlaceholder="auto" class="float-auto">
                                 <input mdInput class="block" placeholder="Send a message" name="newMessage" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
                                     autocomplete="off">
-                                <button md-ripple mdSuffix type="button" class="btn btn-primary btn-fab btn-fab-sm btn-suffix" (click)="sendMessage()">
+                                <button md-ripple mdSuffix style="background: #8cc83c;" type="button" class="btn btn-primary btn-fab btn-fab-sm btn-suffix"
+                                    (click)="sendMessage()">
                                     <i class="zmdi zmdi-mail-send"></i>
                                 </button>
                             </md-input-container>

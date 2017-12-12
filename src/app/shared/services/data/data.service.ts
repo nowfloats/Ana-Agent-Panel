@@ -41,6 +41,10 @@ export class DataService {
 			password: password
 		}).map(res => res.json() as LoginResponse)
 	}
+
+	logout() {
+		localStorage.removeItem("profile");
+	}
 }
 
 export interface LoginData {

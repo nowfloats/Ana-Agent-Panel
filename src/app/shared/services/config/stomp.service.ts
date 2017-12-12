@@ -100,10 +100,10 @@ export class StompService {
 		}, this.stompHeaders);
 	}
 
-	agentSubscriptions(agents: ChatCustomerInfo[]) {
-		agents.forEach(agent => {
+	allChatsSubscription(custChats: ChatCustomerInfo[]) {
+		custChats.forEach(custChat => {
 			this.stompHeaders['id'] = this.count++;
-			this.client.subscribe('/topic/chat/customer/' + agent.customerId + "/business/" + agent.businessId, (message) => {
+			this.client.subscribe('/topic/chat/customer/' + custChat.customerId + "/business/" + custChat.businessId, (message) => {
 				this.onMessage(JSON.parse(message.body));
 			}, this.stompHeaders);
 		});

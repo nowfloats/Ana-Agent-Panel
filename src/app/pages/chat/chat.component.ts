@@ -55,7 +55,7 @@ export class ChatComponent implements OnInit {
 	public newMessage: string;
 	value: boolean
 	closeResult: string;
-
+	JSON = JSON;
 	timestamp: any;
 	activeSearch: boolean = false
 	textArea: boolean = false;
@@ -95,7 +95,12 @@ export class ChatComponent implements OnInit {
 		this.stompService.handleMessageReceived = (msg) => {
 			if (!this.chatThreads[msg.meta.sender.id])
 				this.chatThreads[msg.meta.sender.id] = [];
-			this.chatThreads[msg.meta.sender.id].push(msg.data);
+			this.chatThreads[msg.meta.sender.id].push(msg);
+			if (!this.selectedCustomer || this.selectedCustomer.customerId != msg.meta.sender.id) {
+				let cust = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
+				if (cust && cust.length > 0)
+					cust[0].unreadCount++;
+			}
 		};
 	}
 
@@ -104,14 +109,18 @@ export class ChatComponent implements OnInit {
 			c => (<any>c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> <any>c / 4).toString(16)
 		)
 	}
+	logout() {
+		this.dataService.logout();
+		this.router.navigateByUrl('/');
+	}
+	onCustomerSelected(cust: ChatCustomerInfo) {
+		this.selectedCustomer = cust;
+		this.selectedCustomer.unreadCount = 0;
 
-	onAgentSelected(agent: ChatCustomerInfo) {
-		this.selectedCustomer = agent;
-
-		if (!this.chatThreads[agent.customerId]) {
-			this.dataService.getHistory(agent.customerId, agent.businessId, 5, 0).subscribe(resData => {
+		if (!this.chatThreads[cust.customerId]) {
+			this.dataService.getHistory(cust.customerId, cust.businessId, 5, 0).subscribe(resData => {
 				try {
-					this.chatThreads[agent.customerId] = resData.content.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
+					this.chatThreads[cust.customerId] = resData.content.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
 				}
 				catch (e) {
 					console.log(e);
@@ -120,7 +129,11 @@ export class ChatComponent implements OnInit {
 			});
 		}
 	}
-
+	isCustomerSelected(cust: ChatCustomerInfo) {
+		if (this.selectedCustomer && this.selectedCustomer.customerId == cust.customerId)
+			return true;
+		return false;
+	}
 	ngOnInit() {
 		if (window.innerWidth < 992) {
 			this.navMode = "over";
@@ -140,7 +153,10 @@ export class ChatComponent implements OnInit {
 			} else {
 				this.customersList = resData.data.content;
 				this.stompService.handleConnect = () => {
-					this.stompService.agentSubscriptions(this.customersList);
+					this.stompService.allChatsSubscription(this.customersList);
+
+					if (this.customersList && this.customersList.length > 0)
+						this.onCustomerSelected(this.customersList[0]);
 				};
 				this.stompService.connect({
 					debug: true,
@@ -209,6 +225,14 @@ export class ChatComponent implements OnInit {
 					"inputType": 0,
 					"input": {
 						"val": this.newMessage
+					},
+					"mandatory": 1,
+					"multiple": 0,
+					"textInputAttr": {
+						"multiLine": 0,
+						"minLength": 0,
+						"maxLength": 0,
+						"placeHolder": ""
 					}
 				}
 			},
@@ -221,7 +245,7 @@ export class ChatComponent implements OnInit {
 					"id": this.selectedCustomer.customerId,
 					"medium": lastMsg.meta.recipient.medium
 				},
-				"senderType": 1,
+				"senderType": 3,
 				"id": ChatComponent.uuidv4(),
 				"sessionId": lastMsg.meta.sessionId,
 				"timestamp": new Date().getTime(),
@@ -249,6 +273,17 @@ export class ChatComponent implements OnInit {
 		if (event.target.innerWidth > 992) {
 			this.navMode = "side";
 			this.leftSidenav2.open();
+		}
+	}
+
+	optionsText(chatMsg: any) {
+		try {
+			let options = chatMsg.data.content.options as any[];
+
+			return options.filter(x => x.value == chatMsg.data.content.input.val)[0].title;
+		} catch (e) {
+			console.log(e);
+			return "";
 		}
 	}
 }
