@@ -18,7 +18,7 @@ const LAYOUT_ROUTES: Routes = [
 	},
 	{
 		path: "chat",
-		canActivate: [AuthGuardService],
+		canActivateChild: [AuthGuardService],
 		loadChildren: "../pages/chat/chat.module#ChatModule"
 	},
 	{ path: "**", redirectTo: "" }

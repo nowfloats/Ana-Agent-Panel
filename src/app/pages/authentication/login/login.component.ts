@@ -46,13 +46,13 @@ export class LoginComponent implements OnInit {
 				if (resp.error)
 					alert(resp.error.message);
 				else {
-					this.config.profile = this.config.getUserProfileFromLoginDetails(resp.data);
-					this.router.navigate(['/chat']);
+					this.config.profile = savedProfile;
+					this.router.navigateByUrl('/chat');
 				}
 			}, err => {
 				if (err.status == 401) {
 					this.data.logout();
-					this.router.navigate(['/chat']);
+					this.router.navigateByUrl('/');
 				} else
 					alert(`Unexpected error occured!\r\n${err.message}`);
 			});
