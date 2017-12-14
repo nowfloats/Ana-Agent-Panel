@@ -13,10 +13,17 @@ import { timestamp } from "rxjs/operator/timestamp";
 export class DataService {
 
 	baseURL: string;
-	constructor(private http: Http, private _config: ConfigService) { }
+	constructor(private http: Http, private config: ConfigService) { }
+
+	private getHeaders() {
+		let headers = new Headers();
+		if (this.config.profile.accessToken)
+			headers.set('access-token', this.config.profile.accessToken);
+		return headers;
+	}
 
 	getChatDetails() {
-		return this.http.get(this._config.app.webSocketEndPoint + "/api/agents/" + this._config.profile.userId + "/chats")
+		return this.http.get(this.config.app.webSocketEndPoint + "/api/agents/" + this.config.profile.userId + "/chats", { headers: this.getHeaders() })
 			.map(res => res.json() as AgentChatsResponse);
 	};
 
@@ -31,12 +38,13 @@ export class DataService {
 		else
 			myparams.append("page", pageNumber);
 
-		this.baseURL = this._config.app.apiGatewayEndPoint;
-		return this.http.get(this.baseURL + "/chatdata/messages?" + myparams).map((res: Response) => res.json());
+		this.baseURL = this.config.app.apiGatewayEndPoint;
+		return this.http.get(this.baseURL + "/chatdata/messages?" + myparams, { headers: this.getHeaders() })
+			.map((res: Response) => res.json());
 	};
 
 	login(username, password) {
-		return this.http.post(this._config.app.apiGatewayEndPoint + "/auth/login", {
+		return this.http.post(this.config.app.apiGatewayEndPoint + "/auth/login", {
 			username: username,
 			password: password
 		}).map(res => res.json() as LoginResponse)
