@@ -29,6 +29,9 @@ import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
 import { Router } from "@angular/router";
+import * as models from '../../shared/model/ana-chat.models';
+import { ANAChatMessage } from "../../shared/model/ana-chat.models";
+import { setTimeout } from "timers";
 
 @Component({
 	selector: ".content_inner_wrapper",
@@ -93,15 +96,48 @@ export class ChatComponent implements OnInit {
 		@Inject(DOCUMENT) private _doc: Document
 	) {
 		this.stompService.handleMessageReceived = (msg) => {
-			if (!this.chatThreads[msg.meta.sender.id])
-				this.chatThreads[msg.meta.sender.id] = [];
-			this.chatThreads[msg.meta.sender.id].push(msg);
-			if (!this.selectedCustomer || this.selectedCustomer.customerId != msg.meta.sender.id) {
-				let cust = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
-				if (cust && cust.length > 0)
-					cust[0].unreadCount++;
-			}
-		};
+			if (msg.data && Object.keys(msg.data).length > 0) {
+
+				this.addMsgToThread(msg.meta.sender.id, msg);
+
+				if (!this.selectedCustomer || this.selectedCustomer.customerId != msg.meta.sender.id) {
+					let cust = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
+					if (cust && cust.length > 0)
+						cust[0].unreadCount++;
+				}
+
+				if (this.selectedCustomer && this.selectedCustomer.customerId == msg.meta.sender.id) {
+					this.scrollActiveChatToBottom();
+				}
+			};
+
+			this.stompService.handleNewChat = (custInfo) => {
+				this.customersList.unshift(custInfo);
+			};
+		}
+	}
+
+	addMsgToCurrentThread(msg: any) {
+		let thread = this.currentChatThread();
+		if (thread.filter(x => x.meta.id == msg.meta.id).length > 0)
+			return;
+		thread.push(msg);
+	}
+
+	addMsgToThread(custId: string, msg: any) {
+		if (!this.chatThreads[custId])
+			this.chatThreads[custId] = [];
+		if (this.chatThreads[custId].filter(x => x.meta.id == msg.meta.id).length > 0)
+			return;
+		this.chatThreads[custId].push(msg);
+	}
+
+	insertMsgToThread(custId: string, msg: any) {
+		if (!this.chatThreads[custId])
+			this.chatThreads[custId] = [];
+		if (this.chatThreads[custId].filter(x => x.meta.id == msg.meta.id).length > 0)
+			return;
+		this.chatThreads[custId].unshift(msg);
 	}
 
 	static uuidv4() {
@@ -109,8 +145,19 @@ export class ChatComponent implements OnInit {
 			c => (<any>c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> <any>c / 4).toString(16)
 		)
 	}
+
+	scrollActiveChatToBottom() {
+		let scrollEle = this.myScrollContainer.nativeElement as HTMLDivElement;
+		// window.requestAnimationFrame(() => {
+		// 	scrollEle.children.item(scrollEle.children.length - 1).scrollIntoView({ behavior: 'instant' });
+		// });
+
+		window.requestAnimationFrame(() => scrollEle.scrollTo({ top: scrollEle.scrollHeight, behavior: 'instant' }));
+	}
+
 	logout() {
 		this.dataService.logout();
+		this.stompService.disconnect();
 		this.router.navigateByUrl('/');
 	}
 	onCustomerSelected(cust: ChatCustomerInfo) {
@@ -118,9 +165,11 @@ export class ChatComponent implements OnInit {
 		this.selectedCustomer.unreadCount = 0;
 
 		if (!this.chatThreads[cust.customerId]) {
-			this.dataService.getHistory(cust.customerId, cust.businessId, 5, 0).subscribe(resData => {
+			this.dataService.getHistory(cust.customerId, cust.businessId, 20, 0).subscribe(resData => {
 				try {
-					this.chatThreads[cust.customerId] = resData.content.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
+					let history: any[] = resData.content.reverse();
+					this.chatThreads[cust.customerId] = history.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
+					this.scrollActiveChatToBottom();
 				}
 				catch (e) {
 					console.log(e);
@@ -133,6 +182,14 @@ export class ChatComponent implements OnInit {
 		if (this.selectedCustomer && this.selectedCustomer.customerId == cust.customerId)
 			return true;
 		return false;
+	}
+	isChatMessageHidden(chatMsg: any) {
+		const HIDE = true;
+
+		if (chatMsg.data.type == 2 && (!chatMsg.data.content.input || !chatMsg.data.content.input.val)) {
+			return HIDE;
+		}
+		return !HIDE;
 	}
 	ngOnInit() {
 		if (window.innerWidth < 992) {
@@ -166,28 +223,32 @@ export class ChatComponent implements OnInit {
 		});
 	}
 
-	scrollToBottom(): void {
-		try {
-			this.myScrollContainer.nativeElement.scrollTop = this.myScrollContainer.nativeElement.scrollHeight;
-		} catch (err) { }
-	}
-
+	loadingHistory = false;
 	onScroll(event: UIEvent) {
-		if (this.myScrollContainer.nativeElement.scrollTop == 0) {
-			//this.timestamp = this.historyData.content[this.historyData.content.length - 1].meta.timestamp;
-			//this._DataService.getHistory(this.customerId, this.businessId, 5, 0, this.timestamp).subscribe(resData => {
-			//    //console.log(resData.content)
-			//    resData.content.foreach(x => {
-			//        this.chatThreads[this.customerId].push(x)
-			//    })
-			//    this.historyData.content = this.chatThreads[this.customerId];
-			//    // for (let i = 0; i < resData.content.length; i++) {
-			//    // 	this.chatThreads[this.customerId].push(resData);
-			//    // 	this.historyData.content.push(resData.content[i]);
-			//    // }
-			//    //	console.log(this.historyData.content)
-			//    //	console.log(JSON.stringify(this.historyData))
-			//})
+		if (this.loadingHistory)
+			return;
+
+		let scrollEle = this.myScrollContainer.nativeElement as HTMLDivElement;
+		let oldScrollHeight = scrollEle.scrollHeight;
+		if (scrollEle.scrollTop <= 2) {
+			let thread = this.currentChatThread();
+			if (thread && thread.length > 0) {
+				this.loadingHistory = true;
+				this.dataService.getHistory(this.selectedCustomer.customerId, this.selectedCustomer.businessId, 20, 0, thread[0].meta.timestamp).subscribe(resData => {
+					try {
+						resData.content.forEach(x => {
+							if (thread.filter(msg => msg.meta.id == x.meta.id).length > 0)
+								return;
+							thread.unshift(x);
+						});
+						window.requestAnimationFrame(() => {
+							scrollEle.scrollTop = (scrollEle.scrollHeight - oldScrollHeight);
+						});
+					} finally {
+						this.loadingHistory = false;
+					}
+				})
+			}
 		}
 	}
 
@@ -217,6 +278,8 @@ export class ChatComponent implements OnInit {
 	sendMessage() {
 		let chatThread = this.currentChatThread();
 		let lastMsg = chatThread[chatThread.length - 1];
+		if (!lastMsg)
+			alert('Message thread is empty! Donno the session id!');
 
 		let msg = {
 			"data": {
@@ -255,6 +318,7 @@ export class ChatComponent implements OnInit {
 
 		this.stompService.sendMessage(msg);
 		chatThread.push(msg);
+		this.scrollActiveChatToBottom();
 		this.newMessage = null;
 	}
 

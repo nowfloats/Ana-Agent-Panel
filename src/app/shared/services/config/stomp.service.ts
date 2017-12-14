@@ -33,10 +33,12 @@ export class StompService {
 			this.timer = null;
 		}
 	}
-	private disconnect() {
+	public disconnect() {
 		this.clearTimer();
 		if (this.client && this.client.connected) {
 			this.client.disconnect(() => this.debug("WebSocket Disconnected"));
+			delete this.client;
+			delete this.sockInstance;
 		}
 	}
 
@@ -92,9 +94,22 @@ export class StompService {
 				var eventType = eventMsg.events[i].type;
 				if (eventType == 5) {
 					this.stompHeaders['id'] = this.count++;
-					this.client.subscribe(eventMsg.events[i].channel, (liveStompMessage) => {
-						this.onMessage(liveStompMessage);
+					this.client.subscribe(eventMsg.events[i].channel, (message) => {
+						this.onMessage(JSON.parse(message.body));
 					}, this.stompHeaders);
+					console.log(eventMsg);
+					if (this.handleNewChat)
+						this.handleNewChat({
+							agentId: '',
+							assignedAt: Date(),
+							businessId: '',
+							created_at: '',
+							customerId: eventMsg.meta.sender.id,
+							id: 0,
+							last_message_time: '',
+							status: 0,
+							unreadCount: 0
+						});
 				}
 			}
 		}, this.stompHeaders);
@@ -143,6 +158,7 @@ export class StompService {
 
 	handleMessageReceived: (message: any) => void;
 	handleConnect: () => void;
+	handleNewChat: (custInto: ChatCustomerInfo) => void;
 }
 export interface StompConfig {
 	endpoint: string;

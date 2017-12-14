@@ -76,7 +76,7 @@
             <div class="content-body">
                 <div class="chat" *ngIf="selectedCustomer">
                     <div id="messages" class="bs-example" #scrollMe (scroll)="onScroll($event)">
-                        <div class="bubble-wrapper" *ngFor="let chatMsg of currentChatThread()">
+                        <div class="bubble-wrapper" *ngFor="let chatMsg of currentChatThread()" [hidden]="isChatMessageHidden(chatMsg)">
                             <img [src]="getMsgImage(chatMsg.meta.senderType)" class="avatar" [class.you]="isYou(chatMsg.meta.senderType)" [class.me]="isMe(chatMsg.meta.senderType)"
                             />
                             <div class="bubble" [class.chat-bubble-you]="isYou(chatMsg.meta.senderType)" [class.chat-bubble-me]="isMe(chatMsg.meta.senderType)">
@@ -87,20 +87,20 @@
                                     <div *ngSwitchCase="2">
                                         <div [ngSwitch]="chatMsg.data.content.inputType">
                                             <div *ngSwitchCase="0">
-                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="1">
-                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="2">
-                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="3">
-                                                <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                             </div>
                                             <div *ngSwitchCase="10">
                                                 <!-- Options -->
-                                                <p>{{chatMsg.data.content.input ? optionsText(chatMsg) : '-'}}</p>
+                                                <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? optionsText(chatMsg) : '-'}}</p>
                                             </div>
                                             <div *ngSwitchDefault>
                                                 <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">Unsupported Format</p>
