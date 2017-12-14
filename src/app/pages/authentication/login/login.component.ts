@@ -36,6 +36,14 @@ export class LoginComponent implements OnInit {
 				else
 					this.router.navigate(['/']);
 			}
+		}, err => {
+			try {
+				let resp = JSON.parse(err._body);
+				if (resp.error.message)
+					alert(resp.error.message);
+			} catch (e) {
+				alert(`Oops! Something went wrong!\n${err.statusText}`);
+			}
 		})
 	}
 
