@@ -177,6 +177,9 @@ export class ChatComponent implements OnInit {
 				}
 			});
 		}
+		else {
+			this.scrollActiveChatToBottom();
+		}
 	}
 	isCustomerSelected(cust: ChatCustomerInfo) {
 		if (this.selectedCustomer && this.selectedCustomer.customerId == cust.customerId)

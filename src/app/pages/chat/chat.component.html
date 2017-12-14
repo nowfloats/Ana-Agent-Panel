@@ -134,8 +134,7 @@
                             <md-input-container floatPlaceholder="auto" class="float-auto">
                                 <input mdInput class="block" placeholder="Send a message" name="newMessage" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
                                     autocomplete="off">
-                                <button md-ripple mdSuffix style="background: #8cc83c;" type="button" class="btn btn-primary btn-fab btn-fab-sm btn-suffix"
-                                    (click)="sendMessage()">
+                                <button md-icon-button mdSuffix style="background: transparent !important" type="button" (click)="sendMessage()">
                                     <i class="zmdi zmdi-mail-send"></i>
                                 </button>
                             </md-input-container>
