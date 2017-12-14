@@ -1,4 +1,5 @@
 import { Injectable } from "@angular/core";
+import { LoginResponse, LoginData } from "app/shared/services/data/data.service";
 declare var $: any;
 
 @Injectable()
@@ -33,6 +34,16 @@ export class ConfigService {
 			mobile: 576
 		};
 	}
+
+	getUserProfileFromLoginDetails(loginDetails: LoginData): UserProfile {
+		return {
+			user: loginDetails.name,
+			userEmail: loginDetails.name,
+			userId: loginDetails.userId,
+			accessToken: loginDetails.accessToken
+		};
+	}
+
 }
 
 

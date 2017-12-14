@@ -2,6 +2,7 @@ import { Routes, RouterModule } from "@angular/router";
 import { LayoutComponent } from "./layout.component";
 import { LoginComponent } from "app/pages/authentication/login/login.component";
 import { LoginModule } from "app/pages/authentication/login/login.module";
+import { AuthGuardService } from 'app/shared/services/data/auth-guard.service';
 const LAYOUT_ROUTES: Routes = [
 	{
 		path: "authentication/lock",
@@ -17,6 +18,7 @@ const LAYOUT_ROUTES: Routes = [
 	},
 	{
 		path: "chat",
+		canActivate: [AuthGuardService],
 		loadChildren: "../pages/chat/chat.module#ChatModule"
 	},
 	{ path: "**", redirectTo: "" }

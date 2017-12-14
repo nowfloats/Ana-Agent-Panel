@@ -4,11 +4,12 @@ import { ConfigService } from "./config/config.service";
 import { PreloaderService } from "./preloader/preloader.service";
 import { SpinnerService } from "./spinner/spinner.service";
 import { DataService } from "./data/data.service";
+import { AuthGuardService } from "./data/auth-guard.service";
 import { ThemesService } from './themes/themes.service';
 
 @NgModule({
 	imports: [],
-	providers: [ConfigService, ThemesService, PreloaderService, SpinnerService, DataService],
+	providers: [ConfigService, ThemesService, PreloaderService, SpinnerService, DataService, AuthGuardService],
 	declarations: [],
 	exports: []
 })

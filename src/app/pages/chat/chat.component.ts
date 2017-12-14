@@ -346,7 +346,6 @@ export class ChatComponent implements OnInit {
 	optionsText(chatMsg: any) {
 		try {
 			let options = chatMsg.data.content.options as any[];
-
 			return options.filter(x => x.value == chatMsg.data.content.input.val)[0].title;
 		} catch (e) {
 			console.log(e);

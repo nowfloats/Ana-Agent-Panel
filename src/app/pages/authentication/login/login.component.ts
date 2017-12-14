@@ -24,21 +24,15 @@ export class LoginComponent implements OnInit {
 
 	signIn() {
 		this.data.login(this.username, this.password).subscribe(resData => {
-			if (resData.error) {
+			if (resData.error)
 				alert(resData.error.message);
-			} else {
-				let loginDetails = resData.data;
-				this.config.profile = {
-					user: loginDetails.name,
-					userEmail: loginDetails.name,
-					userId: loginDetails.userId,
-					accessToken: loginDetails.accessToken
-				};
-
-				localStorage.setItem("profile", JSON.stringify(this.config.profile));
-
-				if (this.config.profile.accessToken)
+			else {
+				let userProfile = this.config.getUserProfileFromLoginDetails(resData.data);
+				if (userProfile.accessToken) {
+					this.config.profile = userProfile;
+					localStorage.setItem("profile", JSON.stringify(this.config.profile));
 					this.router.navigate(['/chat']);
+				}
 				else
 					this.router.navigate(['/']);
 			}
@@ -48,8 +42,20 @@ export class LoginComponent implements OnInit {
 	ngOnInit() {
 		let savedProfile = JSON.parse(localStorage.getItem("profile")) as UserProfile;
 		if (savedProfile && savedProfile.accessToken) {
-			this.config.profile = savedProfile;
-			this.router.navigate(['/chat']);
+			this.data.isAccessTokenValid(savedProfile.accessToken).subscribe(resp => {
+				if (resp.error)
+					alert(resp.error.message);
+				else {
+					this.config.profile = this.config.getUserProfileFromLoginDetails(resp.data);
+					this.router.navigate(['/chat']);
+				}
+			}, err => {
+				if (err.status == 401) {
+					this.data.logout();
+					this.router.navigate(['/chat']);
+				} else
+					alert(`Unexpected error occured!\r\n${err.message}`);
+			});
 		}
 	}
 }

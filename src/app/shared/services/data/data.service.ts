@@ -1,6 +1,7 @@
 import { Http, Headers, Response, Jsonp, RequestOptions } from "@angular/http";
 import { HttpParams } from "@angular/common/http"
 import { Injectable } from "@angular/core";
+import { Router } from "@angular/router";
 import { Observable } from "rxjs/Observable";
 import { ConfigService } from "../config/config.service"
 import "rxjs/Rx";
@@ -8,12 +9,13 @@ import "rxjs/add/operator/map";
 import "rxjs/add/operator/toPromise";
 import "rxjs/add/operator/catch";
 import { timestamp } from "rxjs/operator/timestamp";
+import { resetFakeAsyncZone } from "@angular/core/testing";
 
 @Injectable()
 export class DataService {
 
 	baseURL: string;
-	constructor(private http: Http, private config: ConfigService) { }
+	constructor(private http: Http, private config: ConfigService, private router: Router) { }
 
 	private getHeaders() {
 		let headers = new Headers();
@@ -50,8 +52,28 @@ export class DataService {
 		}).map(res => res.json() as LoginResponse)
 	}
 
+	isAccessTokenValid(accessToken: string) {
+		return this.http.get(this.config.app.apiGatewayEndPoint + "/auth/me", {
+			headers: new Headers({
+				"access-token": accessToken
+			})
+		}).map(res => res.json() as LoginResponse);
+	}
+
 	logout() {
+		try {
+			this.http.get(this.config.app.apiGatewayEndPoint + "/auth/logout", { headers: this.getHeaders() }).subscribe(x => {
+				console.log('Logout Done: ' + x.text());
+			});
+		} catch (e) {
+			console.log('Logout Error');
+			console.log(e);
+		}
 		localStorage.removeItem("profile");
+	}
+
+	returnToHome() {
+		this.router.navigateByUrl('/');
 	}
 }
 
