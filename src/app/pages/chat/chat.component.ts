@@ -149,12 +149,17 @@ export class ChatComponent implements OnInit {
 	}
 
 	scrollActiveChatToBottom() {
+
 		let scrollEle = this.myScrollContainer.nativeElement as HTMLDivElement;
 		// window.requestAnimationFrame(() => {
 		// 	scrollEle.children.item(scrollEle.children.length - 1).scrollIntoView({ behavior: 'instant' });
 		// });
 
-		window.requestAnimationFrame(() => scrollEle.scrollTo({ top: scrollEle.scrollHeight, behavior: 'instant' }));
+		// console.log(scrollEle);
+		// console.log(scrollEle.scrollTo);
+		// console.log(scrollEle.scrollBy);
+
+		window.requestAnimationFrame(() => scrollEle.scrollTop = scrollEle.scrollHeight);
 	}
 
 	logout() {
