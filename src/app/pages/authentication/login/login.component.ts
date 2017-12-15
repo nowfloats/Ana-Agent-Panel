@@ -5,6 +5,7 @@ import {
 import { LoginResponse, DataService } from "../../../shared/services/data/data.service"
 //import { Http } from "@angular/Http"
 import { ConfigService, UserProfile } from "../../../shared/services/config/config.service";
+import { InfoDialogService } from '../../../shared/services/helpers/info-dialog.service';
 import { Router } from "@angular/router";
 import { Observable } from "rxjs";
 @Component({
@@ -18,14 +19,14 @@ export class LoginComponent implements OnInit {
 	public username: string;
 	public password: string;
 
-	constructor(public router: Router, private config: ConfigService, private data: DataService) {
+	constructor(public router: Router, private config: ConfigService, private data: DataService, private infoDialog: InfoDialogService) {
 
 	}
 
 	signIn() {
 		this.data.login(this.username, this.password).subscribe(resData => {
 			if (resData.error)
-				alert(resData.error.message);
+				this.infoDialog.alert('Unable to login', resData.error.message);
 			else {
 				let userProfile = this.config.getUserProfileFromLoginDetails(resData.data);
 				if (userProfile.accessToken) {
@@ -40,9 +41,9 @@ export class LoginComponent implements OnInit {
 			try {
 				let resp = JSON.parse(err._body);
 				if (resp.error.message)
-					alert(resp.error.message);
+					this.infoDialog.alert('Unable to login', resp.error.message);
 			} catch (e) {
-				alert(`Oops! Something went wrong!\n${err.statusText}`);
+				this.infoDialog.alert(`Oops! Something went wrong!`, err.statusText);
 			}
 		})
 	}
@@ -51,8 +52,10 @@ export class LoginComponent implements OnInit {
 		let savedProfile = JSON.parse(localStorage.getItem("profile")) as UserProfile;
 		if (savedProfile && savedProfile.accessToken) {
 			this.data.isAccessTokenValid(savedProfile.accessToken).subscribe(resp => {
-				if (resp.error)
-					alert(resp.error.message);
+				if (resp.error) {
+					this.data.logout();
+					this.router.navigateByUrl('/');
+				}
 				else {
 					this.config.profile = savedProfile;
 					this.router.navigateByUrl('/chat');
@@ -62,7 +65,7 @@ export class LoginComponent implements OnInit {
 					this.data.logout();
 					this.router.navigateByUrl('/');
 				} else
-					alert(`Unexpected error occured!\r\n${err.message}`);
+					this.infoDialog.alert(`Unexpected error occured!`, err.message);
 			});
 		}
 	}

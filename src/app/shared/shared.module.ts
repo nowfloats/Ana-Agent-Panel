@@ -92,6 +92,7 @@ import {
 	SmdFabSpeedDialTriggerComponent
 } from "./components/fab/index";
 
+import { InfoDialogComponent } from './components/info-dialog/info-dialog.component';
 import { ng2LineChartDemoComponent } from "./components/charts/ng2-charts/ng2-charts-line.component";
 import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-charts-bar.component";
 @NgModule({
@@ -151,6 +152,7 @@ import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-cha
 		SocialCardComponent,
 		salesGaugeComponent,
 		ng2LineChartDemoComponent,
+		InfoDialogComponent,
 		ng2BarChartDemoComponent,
 		signupGaugeComponent,
 		SmdFabSpeedDialActionsComponent,
@@ -195,6 +197,7 @@ import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-cha
 		Profile,
 		salesGaugeComponent,
 		ng2LineChartDemoComponent,
+		InfoDialogComponent,
 		ng2BarChartDemoComponent,
 		signupGaugeComponent,
 		FooterComponent,
@@ -219,7 +222,8 @@ import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-cha
 		SmdFabSpeedDialTriggerComponent
 	],
 	entryComponents: [
-		ConfirmDialogComponent
+		ConfirmDialogComponent,
+		InfoDialogComponent
 	]
 })
 export class SharedModule {

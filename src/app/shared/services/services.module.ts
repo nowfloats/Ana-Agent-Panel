@@ -6,10 +6,10 @@ import { SpinnerService } from "./spinner/spinner.service";
 import { DataService } from "./data/data.service";
 import { AuthGuardService } from "./data/auth-guard.service";
 import { ThemesService } from './themes/themes.service';
-
+import { InfoDialogService } from './helpers/info-dialog.service';
 @NgModule({
 	imports: [],
-	providers: [ConfigService, ThemesService, PreloaderService, SpinnerService, DataService, AuthGuardService],
+	providers: [ConfigService, ThemesService, PreloaderService, SpinnerService, DataService, AuthGuardService, InfoDialogService],
 	declarations: [],
 	exports: []
 })

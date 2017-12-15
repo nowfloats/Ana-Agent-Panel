@@ -32,6 +32,7 @@ import { Router } from "@angular/router";
 import * as models from '../../shared/model/ana-chat.models';
 import { ANAChatMessage } from "../../shared/model/ana-chat.models";
 import { setTimeout } from "timers";
+import { InfoDialogService } from "app/shared/services/helpers/info-dialog.service";
 
 @Component({
 	selector: ".content_inner_wrapper",
@@ -93,6 +94,7 @@ export class ChatComponent implements OnInit {
 		private modalService: NgbModal,
 		private stompService: StompService,
 		private router: Router,
+		private infoDialog: InfoDialogService,
 		@Inject(DOCUMENT) private _doc: Document
 	) {
 		this.stompService.handleMessageReceived = (msg) => {
@@ -209,7 +211,7 @@ export class ChatComponent implements OnInit {
 		}
 		this.dataService.getChatDetails().subscribe((resData) => {
 			if (resData.error) {
-				alert(resData.error.message);
+				this.infoDialog.alert('Unable to get the chats', resData.error.message);
 			} else {
 				this.customersList = resData.data.content;
 				this.stompService.handleConnect = () => {
@@ -271,19 +273,20 @@ export class ChatComponent implements OnInit {
 	}
 	getMsgImage(senderType) {
 		if (senderType == 0) {
-			return "/assets/img/profiles/avatar.png"
+			return "assets/img/profiles/avatar.png"
 		}
 		else {
-			return "/assets/img/logo/ana-logo.png"
+			return "assets/img/ana.svg"
 		}
 	}
 
 	sendMessage() {
 		let chatThread = this.currentChatThread();
 		let lastMsg = chatThread[chatThread.length - 1];
-		if (!lastMsg)
-			alert('Message thread is empty! Donno the session id!');
-
+		if (!lastMsg) {
+			this.infoDialog.alert('Oops!', 'Message thread is empty! Donno the session id!');
+			return;
+		}
 		let msg = {
 			"data": {
 				"type": 2,
