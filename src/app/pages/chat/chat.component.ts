@@ -112,11 +112,10 @@ export class ChatComponent implements OnInit {
 					this.scrollActiveChatToBottom();
 				}
 			};
-
-			this.stompService.handleNewChat = (custInfo) => {
-				this.customersList.unshift(custInfo);
-			};
 		}
+		this.stompService.handleNewChat = (custInfo) => {
+			this.customersList.unshift(custInfo);
+		};
 	}
 
 	addMsgToCurrentThread(msg: any) {

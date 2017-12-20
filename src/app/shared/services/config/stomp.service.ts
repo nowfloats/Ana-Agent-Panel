@@ -89,6 +89,7 @@ export class StompService {
 
 		this.stompHeaders['id'] = this.count++;
 		this.client.subscribe('/queue/events/user/' + this._config.profile.userId, (message) => {
+
 			var eventMsg = JSON.parse(message.body);
 			for (var i = 0; i < eventMsg.events.length; i++) {
 				var eventType = eventMsg.events[i].type;
