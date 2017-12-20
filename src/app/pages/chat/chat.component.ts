@@ -118,6 +118,16 @@ export class ChatComponent implements OnInit {
 		};
 	}
 
+	latestMessage(custId: string) {
+		try {
+			let threadMsgs = this.chatThreads[custId]
+				.filter(chatMsg => !(chatMsg.data.type == 2 && (!chatMsg.data.content.input || !chatMsg.data.content.input.val)));
+			return this.msgPreviewText(threadMsgs[threadMsgs.length - 1]);
+		} catch (error) {
+			return "";
+		}
+	}
+
 	addMsgToCurrentThread(msg: any) {
 		let thread = this.currentChatThread();
 		if (thread.filter(x => x.meta.id == msg.meta.id).length > 0)
@@ -171,22 +181,29 @@ export class ChatComponent implements OnInit {
 		this.selectedCustomer.unreadCount = 0;
 
 		if (!this.chatThreads[cust.customerId]) {
-			this.dataService.getHistory(cust.customerId, cust.businessId, 20, 0).subscribe(resData => {
-				try {
-					let history: any[] = resData.content.reverse();
-					this.chatThreads[cust.customerId] = history.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
-					this.scrollActiveChatToBottom();
-				}
-				catch (e) {
-					console.log(e);
-					debugger;
-				}
-			});
+			this.loadHistoryOfCustomer(cust, () => {
+				this.scrollActiveChatToBottom();
+			})
 		}
 		else {
 			this.scrollActiveChatToBottom();
 		}
 	}
+
+	loadHistoryOfCustomer(cust: ChatCustomerInfo, callback?: () => void) {
+		this.dataService.getHistory(cust.customerId, cust.businessId, 20, 0).subscribe(resData => {
+			try {
+				let history: any[] = resData.content.reverse();
+				this.chatThreads[cust.customerId] = history.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
+				if (callback)
+					callback();
+			}
+			catch (e) {
+				console.log(e);
+			}
+		});
+	}
+
 	isCustomerSelected(cust: ChatCustomerInfo) {
 		if (this.selectedCustomer && this.selectedCustomer.customerId == cust.customerId)
 			return true;
@@ -221,8 +238,12 @@ export class ChatComponent implements OnInit {
 				this.stompService.handleConnect = () => {
 					this.stompService.allChatsSubscription(this.customersList);
 
-					if (this.customersList && this.customersList.length > 0)
+					if (this.customersList && this.customersList.length > 0) {
+						this.customersList.forEach(cust => {
+							this.loadHistoryOfCustomer(cust);
+						});
 						this.onCustomerSelected(this.customersList[0]);
+					}
 				};
 				this.stompService.connect({
 					debug: true,
@@ -243,7 +264,7 @@ export class ChatComponent implements OnInit {
 			let thread = this.currentChatThread();
 			if (thread && thread.length > 0) {
 				this.loadingHistory = true;
-				this.dataService.getHistory(this.selectedCustomer.customerId, this.selectedCustomer.businessId, 20, 0, thread[0].meta.timestamp).subscribe(resData => {
+				this.dataService.getHistory(this.selectedCustomer.customerId, this.selectedCustomer.businessId, 50, 0, thread[0].meta.timestamp).subscribe(resData => {
 					try {
 						resData.content.forEach(x => {
 							if (thread.filter(msg => msg.meta.id == x.meta.id).length > 0)
@@ -357,6 +378,30 @@ export class ChatComponent implements OnInit {
 		} catch (e) {
 			console.log(e);
 			return "";
+		}
+	}
+
+	msgPreviewText(chatMsg: any) {
+		try {
+			switch (chatMsg.data.type) {
+				case 0:
+					return chatMsg.data.content.text;
+				case 2:
+					{
+						switch (chatMsg.data.content.inputType) {
+							case 0:
+							case 1:
+							case 2:
+							case 3:
+								return chatMsg.data.content.input.val;
+							case 10:
+								return this.optionsText(chatMsg);
+						}
+						break;
+					}
+			}
+		} catch (error) {
+			console.log(error);
 		}
 	}
 }

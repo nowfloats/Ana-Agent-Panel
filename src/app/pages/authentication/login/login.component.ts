@@ -11,7 +11,10 @@ import { Observable } from "rxjs";
 @Component({
 	selector: ".content_inner_wrapper",
 	templateUrl: "./login.component.html",
-	styleUrls: ["./login.component.scss"]
+	styleUrls: [
+		"./login.component.scss",
+		"./login.component.css"
+	]
 })
 
 export class LoginComponent implements OnInit {

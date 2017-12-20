@@ -16,7 +16,7 @@
                         </div>
                         <button type="submit" class="hidden btn btn-default">Submit</button>
                     </form>
-                    <h2 style="margin: 10px 25px;">Agent Chats</h2>
+                    <h2 style="margin: 10px 25px;">Chats</h2>
                 </header>
                 <nav class="submenu">
                     <ul class="list-group">
@@ -31,7 +31,10 @@
                                 <div class="list-group-item-heading">{{customer.customerId}}
                                     <b *ngIf="customer.unreadCount" style="color:crimson">({{customer.unreadCount}})</b>
                                 </div>
-                                <div class="list-group-item-text">{{customer.assignedAt | date:'medium'}}</div>
+                                <div class="list-group-item-text">{{latestMessage(customer.customerId)}}
+                                    <br/>
+                                    <span class="list-group-item-text-time" style="font-size: 10px;font-style: italic">{{customer.assignedAt | date:'medium'}}</span>
+                                </div>
                             </div>
                         </li>
                     </ul>
