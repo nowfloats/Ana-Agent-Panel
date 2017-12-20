@@ -191,7 +191,7 @@ export class ChatComponent implements OnInit {
 	}
 
 	loadHistoryOfCustomer(cust: ChatCustomerInfo, callback?: () => void) {
-		this.dataService.getHistory(cust.customerId, cust.businessId, 20, 0).subscribe(resData => {
+		this.dataService.getHistory(cust.customerId, cust.businessId, 50, 0).subscribe(resData => {
 			try {
 				let history: any[] = resData.content.reverse();
 				this.chatThreads[cust.customerId] = history.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
