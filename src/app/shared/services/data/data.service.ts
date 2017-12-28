@@ -25,7 +25,7 @@ export class DataService {
 	}
 
 	getChatDetails() {
-		return this.http.get(this.config.app.webSocketEndPoint + "/api/agents/" + this.config.profile.userId + "/chats", { headers: this.getHeaders() })
+		return this.http.get(this.config.app.webSocketEndPoint + "/api/chats", { headers: this.getHeaders() })
 			.map(res => res.json() as AgentChatsResponse);
 	};
 
