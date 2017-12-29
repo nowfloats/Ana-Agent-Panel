@@ -21,12 +21,28 @@ export class LoginComponent implements OnInit {
 
 	public username: string;
 	public password: string;
-
+	public socketEndpoint: string;
+	public apiGatewayEndpoint: string;
+	
 	constructor(public router: Router, private config: ConfigService, private data: DataService, private infoDialog: InfoDialogService) {
-
+		let serverConfig = localStorage.getItem('serverConfig');
+		if (serverConfig) {
+			this.config.app = JSON.parse(serverConfig) as any;
+			this.socketEndpoint = this.config.app.webSocketEndPoint;
+			this.apiGatewayEndpoint = this.config.app.apiGatewayEndPoint;
+		}
 	}
 
 	signIn() {
+		if (!this.socketEndpoint || !this.apiGatewayEndpoint) {
+			this.infoDialog.alert('Incomplete Information', 'Please enter the Socket Endpoint and API Gateway Endpoint details. These details will be provided by your IT Administrator');
+			return;
+		}
+
+		this.config.app.apiGatewayEndPoint = this.apiGatewayEndpoint;
+		this.config.app.webSocketEndPoint = this.socketEndpoint;
+		localStorage.setItem('serverConfig', JSON.stringify(this.config.app));
+
 		this.data.login(this.username, this.password).subscribe(resData => {
 			if (resData.error)
 				this.infoDialog.alert('Unable to login', resData.error.message);

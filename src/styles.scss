@@ -13,3 +13,6 @@
 button, input[type=button], a{
  cursor: pointer;
 }
+input.mat-input-element{
+  margin-top: 1px !important; 
+}

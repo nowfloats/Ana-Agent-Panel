@@ -165,8 +165,15 @@ i.zmdi.zmdi-mail-send {
 aside {
     .header {
         position: relative;
-        padding: 15px 0 !important;
-        height: 65px;
+        padding: 15px !important;
+        // height: 65px;
+        .subtitle{
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .title{
+            font-size: 20px;
+        }
     }
     #filter_contact_wrapper {
         .header-search-icon {

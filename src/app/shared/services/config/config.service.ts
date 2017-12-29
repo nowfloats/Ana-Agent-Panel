@@ -4,11 +4,7 @@ declare var $: any;
 
 @Injectable()
 export class ConfigService {
-	public app: {
-		name: string,
-		webSocketEndPoint: string,
-		apiGatewayEndPoint: string
-	};
+	public app: AppInfo;
 	public profile: UserProfile;
 
 	public appLayout: any;
@@ -40,7 +36,8 @@ export class ConfigService {
 			user: loginDetails.name,
 			userEmail: loginDetails.name,
 			userId: loginDetails.userId,
-			accessToken: loginDetails.accessToken
+			accessToken: loginDetails.accessToken,
+			loginData: loginDetails
 		};
 	}
 
@@ -54,5 +51,12 @@ export interface UserProfile {
 	userImg?: string,
 	userTitle?: string,
 	accessToken: string,
-	isProfileVisible?: boolean
+	isProfileVisible?: boolean;
+	loginData?: LoginData;
+}
+
+export interface AppInfo {
+	name: string,
+	webSocketEndPoint: string,
+	apiGatewayEndPoint: string
 }

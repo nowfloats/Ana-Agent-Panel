@@ -6,17 +6,10 @@
         <md-sidenav #leftSidenav2 mode="{{navMode}}" class="sidenav">
             <aside id="leftSidenav2">
                 <header class="header">
-                    <form name="search" hidden role="search" action="" id="filter_contact_wrapper">
-                        <div class="form-group" [ngClass]="{'is-focused': isFocused }">
-                            <span class="header-search-icon">
-                                <i class="zmdi zmdi-search"></i>
-                            </span>
-                            <input type="text" placeholder="Enter name or email..." class="form-control filter-contacts" [(ngModel)]="term" name="term"
-                                autocomplete="off" (focus)="isFocused = !isFocused" (blur)="isFocused = false;">
-                        </div>
-                        <button type="submit" class="hidden btn btn-default">Submit</button>
-                    </form>
-                    <h2 style="margin: 10px 25px;">Chats</h2>
+                    <div>
+                        <div class="title">{{agentName}}</div>
+                        <div class="subtitle">{{agentRole}}</div>
+                    </div>
                 </header>
                 <nav class="submenu">
                     <ul class="list-group">

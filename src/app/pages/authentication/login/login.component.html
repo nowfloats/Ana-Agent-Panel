@@ -8,6 +8,34 @@
 		</h1>
 		<div class="login-body">
 			<form class="form-horizontal">
+				<md-accordion class="server-config-accr">
+					<md-expansion-panel>
+						<md-expansion-panel-header>
+							<md-panel-title>
+								Server Configuration
+							</md-panel-title>
+						</md-expansion-panel-header>
+						<form class="form-horizontal">
+							<div class="form-group row">
+								<label class="sr-only">Socket Endpoint: </label>
+								<div class="col-md">
+									<md-input-container floatPlaceholder="auto" class="float-auto">
+										<input mdInput placeholder="Socket Endpoint" [(ngModel)]="socketEndpoint" class="form-control" type="text" name="socketEndpoint">
+									</md-input-container>
+								</div>
+							</div>
+							<div class="form-group row">
+								<label class="sr-only">API Gateway Endpoint: </label>
+								<div class="col-md">
+									<md-input-container floatPlaceholder="auto" class="float-auto">
+										<input mdInput placeholder="API Gateway Endpoint" [(ngModel)]="apiGatewayEndpoint" class="form-control" type="text" name="apiGatewayEndpoint">
+									</md-input-container>
+								</div>
+							</div>
+						</form>
+					</md-expansion-panel>
+				</md-accordion>
+
 				<div class="form-group row">
 					<label class="sr-only">Email: </label>
 					<div class="col-md">

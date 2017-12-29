@@ -116,7 +116,16 @@ export class ChatComponent implements OnInit {
 		this.stompService.handleNewChat = (custInfo) => {
 			this.customersList.unshift(custInfo);
 		};
+		
+		try {
+			this.agentName = this.configService.profile.loginData.name;
+			this.agentRole = this.configService.profile.loginData.roles.map(x => x.label).join(', ');
+		} catch (e) {
+			console.log(e);
+		}
 	}
+	agentName: string;
+	agentRole: string;
 
 	latestMessage(custId: string) {
 		try {
