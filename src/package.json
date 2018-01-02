@@ -1,6 +1,6 @@
 {
   "name": "ana-agent-panel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "electron.js",
   "author": "Team Ana",
   "description": "Ana Agent Panel",
@@ -22,7 +22,8 @@
       "icon": "favicon.ico"
     },
     "linux": {
-      "category": "Graphics"
+      "category": "Graphics",
+      "icon": "favicon"
     },
     "electronVersion": "1.7.9",
     "publish": {
