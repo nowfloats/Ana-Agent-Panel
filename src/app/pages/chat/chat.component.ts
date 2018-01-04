@@ -30,7 +30,7 @@ import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
 import { Router } from "@angular/router";
 import * as models from '../../shared/model/ana-chat.models';
-import { ANAChatMessage } from "../../shared/model/ana-chat.models";
+import { ANAChatMessage, SenderType } from "../../shared/model/ana-chat.models";
 import { setTimeout } from "timers";
 import { InfoDialogService } from "app/shared/services/helpers/info-dialog.service";
 
@@ -84,6 +84,22 @@ export class ChatComponent implements OnInit {
 	public navIsFixed: boolean = false;
 	public scrollbarOptions = { axis: "yx", theme: "minimal-dark" };
 
+	settings: AppSettings = {};
+
+	saveSettings() {
+		localStorage.setItem('appSettings', JSON.stringify(this.settings));
+	}
+
+	loadSettings() {
+		this.settings = JSON.parse(localStorage.getItem('appSettings')) as AppSettings;
+		if (!this.settings) {
+			//Default
+			this.settings = {
+				disableSounds: false
+			};
+		}
+	}
+
 	@ViewChild("scrollMe") private myScrollContainer: ElementRef;
 
 	constructor(
@@ -97,15 +113,21 @@ export class ChatComponent implements OnInit {
 		private infoDialog: InfoDialogService,
 		@Inject(DOCUMENT) private _doc: Document
 	) {
-		this.stompService.handleMessageReceived = (msg) => {
-			if (msg.data && Object.keys(msg.data).length > 0) {
+		this.loadSettings();
 
+		this.stompService.handleMessageReceived = (msg) => {
+			if (msg.data && Object.keys(msg.data).length > 0 && msg.meta.senderType != SenderType.AGENT) {
+				this.newMessageNotifyUser();
 				this.addMsgToThread(msg.meta.sender.id, msg);
 
 				if (!this.selectedCustomer || this.selectedCustomer.customerId != msg.meta.sender.id) {
 					let cust = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
-					if (cust && cust.length > 0)
+					if (cust && cust.length > 0) {
 						cust[0].unreadCount++;
+						this.customersList = this.customersList.sort((a, b) => {
+							return b.unreadCount - a.unreadCount;
+						});
+					}
 				}
 
 				if (this.selectedCustomer && this.selectedCustomer.customerId == msg.meta.sender.id) {
@@ -113,10 +135,12 @@ export class ChatComponent implements OnInit {
 				}
 			};
 		}
+
 		this.stompService.handleNewChat = (custInfo) => {
 			this.customersList.unshift(custInfo);
+			this.newChatNotifyUser("New chat", "Customer: " + custInfo.customerId);
 		};
-		
+
 		try {
 			this.agentName = this.configService.profile.loginData.name;
 			this.agentRole = this.configService.profile.loginData.roles.map(x => x.label).join(', ');
@@ -124,6 +148,47 @@ export class ChatComponent implements OnInit {
 			console.log(e);
 		}
 	}
+
+	//cust[0].customerId, this.msgPreviewText(msg)
+	newMessageNotifyUser(title: string = "", msg: string = "") {
+		if (this.settings.disableSounds) {
+			return;
+		}
+		let audio = new Audio('assets/mp3/new-msg.mp3');
+		audio.play();
+		// this.notifyUser(title, msg);
+	}
+
+	newChatNotifyUser(title: string = "", msg: string = "") {
+		if (this.settings.disableSounds) {
+			return;
+		}
+		let audio = new Audio('assets/mp3/new-chat.mp3');
+		audio.play();
+		// this.notifyUser(title, msg);
+	}
+
+	// notifyUser(title, body) {
+	// 	if (!("Notification" in window)) {
+	// 		return;
+	// 	}
+	// 	let notify = (title, body, icon = 'https://www.ana.chat/favicon.ico') => {
+	// 		var n = new Notification(title, {
+	// 			body: body,
+	// 			icon: icon
+	// 		});			
+	// 	};
+	// 	if ((<any>Notification).permission === "granted") {
+	// 		notify(title, body);
+	// 	} else if ((<any>Notification).permission !== "denied") {
+	// 		Notification.requestPermission(function (permission) {
+	// 			if (permission === "granted") {
+	// 				notify(title, body);
+	// 			}
+	// 		});
+	// 	}
+	// }
+
 	agentName: string;
 	agentRole: string;
 
@@ -135,6 +200,14 @@ export class ChatComponent implements OnInit {
 		} catch (error) {
 			return "";
 		}
+	}
+
+	searchText: string;
+	searchedCustomersList() {
+		let custName = this.searchText;
+		if (!custName)
+			return this.customersList;
+		return this.customersList.filter(x => x.customerId && x.customerId.toLowerCase().indexOf(custName.toLowerCase()) != -1);
 	}
 
 	addMsgToCurrentThread(msg: any) {
@@ -391,6 +464,7 @@ export class ChatComponent implements OnInit {
 	}
 
 	msgPreviewText(chatMsg: any) {
+		if (!chatMsg) return;
 		try {
 			switch (chatMsg.data.type) {
 				case 0:
@@ -420,4 +494,8 @@ export interface meta {
 		text: string,
 		mandatory
 	}
+}
+
+export interface AppSettings {
+	disableSounds?: boolean;
 }

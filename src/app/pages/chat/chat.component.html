@@ -10,11 +10,16 @@
                         <div class="title">{{agentName}}</div>
                         <div class="subtitle">{{agentRole}}</div>
                     </div>
+                    <div>
+                        <md-input-container floatPlaceholder="auto" class="float-auto" style="margin-top: 10px">
+                            <input mdInput class="block" placeholder="Search" name="searchText" [(ngModel)]="searchText" autocomplete="off">
+                        </md-input-container>
+                    </div>
                 </header>
                 <nav class="submenu">
                     <ul class="list-group">
                         <!-- <li class="list-group-item" *ngFor="let thread of threads | filter:term" md-ripple (click)="selectUser(thread.threadId,thread.userId)"> -->
-                        <li class="list-group-item" *ngFor="let customer of customersList" [class.list-item-selected]="isCustomerSelected(customer)"
+                        <li class="list-group-item" *ngFor="let customer of searchedCustomersList()" [class.list-item-selected]="isCustomerSelected(customer)"
                             md-ripple (click)="onCustomerSelected(customer)">
                             <!-- <span class="float-left"><img src="{{thread.img}}" alt="" class="rounded-circle max-w-40 m-r-10"></span> -->
                             <span class="float-left">
@@ -62,6 +67,16 @@
                     </li>
                 </ul>
                 <ul class="actions icons top-right">
+                    <li>
+                        <div>
+                            <button md-icon-button [hidden]="!settings.disableSounds" (click)="settings.disableSounds=false; saveSettings()">
+                                <md-icon>volume_off</md-icon>
+                            </button>
+                            <button md-icon-button [hidden]="settings.disableSounds" (click)="settings.disableSounds=true; saveSettings()">
+                                <md-icon>volume_up</md-icon>
+                            </button>
+                        </div>
+                    </li>
                     <li>
                         <button class="btn btn-default" (click)="logout()">
                             Logout
