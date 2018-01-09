@@ -141,6 +141,7 @@
                 </div>
             </div>
             <!--  Chat Input Wrapper -->
+            
             <div id="chat_input_wrapper" *ngIf="selectedCustomer">
                 <form class="form-horizontal p-b-30">
                     <div class="form-group row">
@@ -152,6 +153,11 @@
                                     <i class="zmdi zmdi-mail-send"></i>
                                 </button>
                             </md-input-container>
+                        </div>
+                        <div class="col-md-2 pull-right" style="text-align: right">
+                            <button (click)="endChat()" type="button" class="btn btn-danger">
+                                End Chat
+                            </button>
                         </div>
                     </div>
                 </form>

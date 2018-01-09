@@ -95,6 +95,7 @@ import {
 import { InfoDialogComponent } from './components/info-dialog/info-dialog.component';
 import { ng2LineChartDemoComponent } from "./components/charts/ng2-charts/ng2-charts-line.component";
 import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-charts-bar.component";
+import { EndChatComponent } from "app/shared/components/end-chat/end-chat.component";
 @NgModule({
 	imports: [
 		CommonModule,
@@ -158,7 +159,8 @@ import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-cha
 		SmdFabSpeedDialActionsComponent,
 		SmdFabSpeedDialComponent,
 		SmdFabSpeedDialTriggerComponent,
-		ConfirmDialogComponent
+		ConfirmDialogComponent,
+		EndChatComponent
 	],
 	exports: [
 		CommonModule,
@@ -223,7 +225,8 @@ import { ng2BarChartDemoComponent } from "./components/charts/ng2-charts/ng2-cha
 	],
 	entryComponents: [
 		ConfirmDialogComponent,
-		InfoDialogComponent
+		InfoDialogComponent,
+		EndChatComponent
 	]
 })
 export class SharedModule {

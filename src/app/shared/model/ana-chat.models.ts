@@ -53,7 +53,31 @@ export enum MessageType {
     EXTERNAL = 3,
     SIMPLE = 0
 }
-
+export enum EventType {
+    DISCONNECTED = 0,
+    CONNECTED = 1,
+    IDLE = 2,
+    SESSION_STARTED = 3,
+    SESSION_CLOSED = 4,
+    CHAT_ALLOCATION = 5,
+    CHAT_DEALLOCATION = 6,
+    MESSAGE_COUNT = 7,
+    RESPONSE_NEEDED = 8,
+    ACTIVE = 9,
+    INACTIVE = 10,
+    TYPING = 11,
+    AWAY = 12,
+    ACK = 13,
+    NO_AGENT_FOUND = 14,
+    INTENT_TO_HANDOVER = 15,
+    INTERACTION = 16,
+    QUEUED = 17,
+    PRIORITY_QUEUED = 18,
+    ALLOCATION_REQUEST = 19,
+    OUT_OF_BUSINESS_HOURS = 20,
+    SET_SESSION_DATA = 21,
+    HANDOVER = 22
+}
 export enum Bool {
     TRUE = 1,
     FALSE = 0,

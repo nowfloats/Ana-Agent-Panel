@@ -10,6 +10,7 @@ import "rxjs/add/operator/toPromise";
 import "rxjs/add/operator/catch";
 import { timestamp } from "rxjs/operator/timestamp";
 import { resetFakeAsyncZone } from "@angular/core/testing";
+import { ANAChatMessage } from "app/shared/model/ana-chat.models";
 
 @Injectable()
 export class DataService {
@@ -27,6 +28,23 @@ export class DataService {
 	getChatDetails() {
 		return this.http.get(this.config.app.webSocketEndPoint + "/api/chats?page=0&size=1000000", { headers: this.getHeaders() })
 			.map(res => res.json() as AgentChatsResponse);
+	};
+
+	intentToHandover(sessionId: string) {
+		let req: DispositionRequest = {
+			handoverToBot: true
+		}
+		return this.http.post(this.config.app.webSocketEndPoint + `/api/chats/sessions/${sessionId}/dispositions`, req, { headers: this.getHeaders() })
+			.map(res => res.json() as DispositionResponse);
+	};
+
+	handover(sessionId: string, message: ANAChatMessage) {
+		let req: DispositionRequest = {
+			handoverToBot: false,
+			message: message
+		}
+		return this.http.post(this.config.app.webSocketEndPoint + `/api/chats/sessions/${sessionId}/dispositions`, req, { headers: this.getHeaders() })
+			.map(res => res.json() as DispositionResponse);
 	};
 
 	getHistory(customerId, businessId, pageSize, pageNumber, timeStamp?: number) {
@@ -133,4 +151,19 @@ export interface AgentChatsData {
 export interface AgentChatsResponse {
 	data: AgentChatsData;
 	error: ErrorInfo;
+}
+
+export interface DispositionRequest {
+	handoverToBot: boolean;
+	message?: any;
+}
+
+export interface DispositionData {
+	handoverToBot: boolean;
+	message?: ANAChatMessage;
+}
+
+export interface DispositionResponse {
+	data?: DispositionData;
+	error?: ErrorInfo;
 }

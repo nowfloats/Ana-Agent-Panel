@@ -4,6 +4,7 @@ import * as StompJS from 'stompjs';
 import { ConfigService } from './config.service'
 import { DataService, ChatCustomerInfo } from '../data/data.service'
 import { parse } from 'date-fns';
+import { EventType } from 'app/shared/model/ana-chat.models';
 
 @Injectable()
 export class StompService {
@@ -93,7 +94,7 @@ export class StompService {
 			var eventMsg = JSON.parse(message.body);
 			for (var i = 0; i < eventMsg.events.length; i++) {
 				var eventType = eventMsg.events[i].type;
-				if (eventType == 5) {
+				if (eventType == EventType.CHAT_ALLOCATION) {
 					this.stompHeaders['id'] = this.count++;
 					this.client.subscribe(eventMsg.events[i].channel, (message) => {
 						this.onMessage(JSON.parse(message.body));
@@ -111,6 +112,20 @@ export class StompService {
 							status: 0,
 							unreadCount: 0
 						});
+				} else if (eventType == EventType.CHAT_DEALLOCATION) {
+					if (this.handleChatDeallocation) {
+						this.handleChatDeallocation({
+							agentId: '',
+							assignedAt: Date(),
+							businessId: '',
+							created_at: '',
+							customerId: eventMsg.meta.sender.id,
+							id: 0,
+							last_message_time: '',
+							status: 0,
+							unreadCount: 0
+						});
+					}
 				}
 			}
 		}, this.stompHeaders);
@@ -160,6 +175,7 @@ export class StompService {
 	handleMessageReceived: (message: any) => void;
 	handleConnect: () => void;
 	handleNewChat: (custInto: ChatCustomerInfo) => void;
+	handleChatDeallocation: (custInto: ChatCustomerInfo) => void;
 }
 export interface StompConfig {
 	endpoint: string;

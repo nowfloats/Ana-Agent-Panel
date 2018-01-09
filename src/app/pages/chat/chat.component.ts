@@ -21,7 +21,7 @@ import { StompService, StompConfig, ChatsResponse } from "../../shared/services/
 import { GlobalState } from "../../app.state";
 import { ConfigService, UserProfile } from "../../shared/services/config/config.service";
 import { ChatCustomerInfo } from '../../shared/services/data/data.service';
-import { MdSidenav } from "@angular/material";
+import { MdSidenav, MdDialog } from "@angular/material";
 import { Observable } from "rxjs";
 import { DataService } from "../../shared/services/data/data.service";
 import { uuid } from "../../shared/util/uuid";
@@ -30,9 +30,10 @@ import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
 import { Router } from "@angular/router";
 import * as models from '../../shared/model/ana-chat.models';
-import { ANAChatMessage, SenderType } from "../../shared/model/ana-chat.models";
+import { ANAChatMessage, SenderType, InputContent, OptionsInputContent } from "../../shared/model/ana-chat.models";
 import { setTimeout } from "timers";
 import { InfoDialogService } from "app/shared/services/helpers/info-dialog.service";
+import { EndChatComponent } from "app/shared/components/end-chat/end-chat.component";
 
 @Component({
 	selector: ".content_inner_wrapper",
@@ -73,7 +74,7 @@ export class ChatComponent implements OnInit {
 	} as ChatsResponse;
 	tempData = {};
 	chatThreads: {
-		[custId: string]: any[]
+		[custId: string]: ANAChatMessage[]
 	} = {};
 
 	selectedCustomer: ChatCustomerInfo;
@@ -110,6 +111,7 @@ export class ChatComponent implements OnInit {
 		private modalService: NgbModal,
 		private stompService: StompService,
 		private router: Router,
+		private dialog: MdDialog,
 		private infoDialog: InfoDialogService,
 		@Inject(DOCUMENT) private _doc: Document
 	) {
@@ -140,7 +142,14 @@ export class ChatComponent implements OnInit {
 			this.customersList.unshift(custInfo);
 			this.newChatNotifyUser("New chat", "Customer: " + custInfo.customerId);
 		};
-
+		this.stompService.handleChatDeallocation = (custInfo) => {
+			this.customersList.splice(this.customersList.findIndex(x => x.customerId == custInfo.customerId), 1);
+			if (this.customersList.length > 0) {
+				this.selectedCustomer = this.customersList[0];
+			} else {
+				this.selectedCustomer = null;
+			}
+		};
 		try {
 			this.agentName = this.configService.profile.loginData.name;
 			this.agentRole = this.configService.profile.loginData.roles.map(x => x.label).join(', ');
@@ -166,6 +175,30 @@ export class ChatComponent implements OnInit {
 		let audio = new Audio('assets/mp3/new-chat.mp3');
 		audio.play();
 		// this.notifyUser(title, msg);
+	}
+
+	endChat() {
+		let sessionId = this.getSessionIdFromActiveThread();
+		if (this.selectedCustomer && sessionId) {
+			this.infoDialog.confirm("Confirmation", `Are you sure you want to end the chat with customer: ${this.selectedCustomer.customerId}?`, (ok) => {
+				if (ok) {
+					let d = this.dialog.open(EndChatComponent, {
+						width: 'auto',
+						data: sessionId
+					});
+					d.afterClosed().subscribe(x => {
+						if (x == true) {
+							this.customersList.splice(this.customersList.findIndex(x => x.customerId == this.selectedCustomer.customerId), 1);
+							if (this.customersList.length > 0) {
+								this.selectedCustomer = this.customersList[0];
+							} else {
+								this.selectedCustomer = null;
+							}
+						}
+					});
+				}
+			});
+		}
 	}
 
 	// notifyUser(title, body) {
@@ -195,7 +228,7 @@ export class ChatComponent implements OnInit {
 	latestMessage(custId: string) {
 		try {
 			let threadMsgs = this.chatThreads[custId]
-				.filter(chatMsg => !(chatMsg.data.type == 2 && (!chatMsg.data.content.input || !chatMsg.data.content.input.val)));
+				.filter(chatMsg => !(chatMsg.data.type == 2 && (!(<InputContent>chatMsg.data.content).input || !(<InputContent>chatMsg.data.content).input.val)));
 			return this.msgPreviewText(threadMsgs[threadMsgs.length - 1]);
 		} catch (error) {
 			return "";
@@ -385,6 +418,14 @@ export class ChatComponent implements OnInit {
 		else {
 			return "assets/img/ana.svg"
 		}
+	}
+
+	getSessionIdFromActiveThread() {
+		let chatThread = this.currentChatThread();
+		let lastMsg = chatThread[chatThread.length - 1];
+		if (lastMsg)
+			return lastMsg.meta.sessionId;
+		return "";
 	}
 
 	sendMessage() {
