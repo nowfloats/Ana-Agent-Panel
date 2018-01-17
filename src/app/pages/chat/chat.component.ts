@@ -140,6 +140,9 @@ export class ChatComponent implements OnInit {
 
 		this.stompService.handleNewChat = (custInfo) => {
 			this.customersList.unshift(custInfo);
+			this.loadHistoryOfCustomer(custInfo, () => {
+				this.scrollActiveChatToBottom();
+			});
 			this.newChatNotifyUser("New chat", "Customer: " + custInfo.customerId);
 		};
 		this.stompService.handleChatDeallocation = (custInfo) => {

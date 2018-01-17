@@ -104,7 +104,7 @@ export class StompService {
 						this.handleNewChat({
 							agentId: '',
 							assignedAt: Date(),
-							businessId: '',
+							businessId: eventMsg.meta.recipient.id,
 							created_at: '',
 							customerId: eventMsg.meta.sender.id,
 							id: 0,
