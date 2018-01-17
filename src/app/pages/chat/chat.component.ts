@@ -189,16 +189,16 @@ export class ChatComponent implements OnInit {
 						width: 'auto',
 						data: sessionId
 					});
-					d.afterClosed().subscribe(x => {
-						if (x == true) {
-							this.customersList.splice(this.customersList.findIndex(x => x.customerId == this.selectedCustomer.customerId), 1);
-							if (this.customersList.length > 0) {
-								this.selectedCustomer = this.customersList[0];
-							} else {
-								this.selectedCustomer = null;
-							}
-						}
-					});
+					// d.afterClosed().subscribe(x => {
+					// 	if (x == true) {
+					// 		this.customersList.splice(this.customersList.findIndex(x => x.customerId == this.selectedCustomer.customerId), 1);
+					// 		if (this.customersList.length > 0) {
+					// 			this.selectedCustomer = this.customersList[0];
+					// 		} else {
+					// 			this.selectedCustomer = null;
+					// 		}
+					// 	}
+					// });
 				}
 			});
 		}
