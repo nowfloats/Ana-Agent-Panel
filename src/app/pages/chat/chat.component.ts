@@ -309,7 +309,7 @@ export class ChatComponent implements OnInit {
 	}
 
 	loadHistoryOfCustomer(cust: ChatCustomerInfo, callback?: () => void) {
-		this.dataService.getHistory(cust.customerId, cust.businessId, 50, 0).subscribe(resData => {
+		this.dataService.getHistory(cust.customerId, cust.businessId, 50, 0, null, cust.flowId).subscribe(resData => {
 			try {
 				let history: any[] = resData.content.reverse();
 				this.chatThreads[cust.customerId] = history.filter(x => (x.data.type == 0) || (x.data.type == 2 && x.data.content.input && x.data.content.input.val));//Filtering only text inputs for now.
@@ -382,7 +382,7 @@ export class ChatComponent implements OnInit {
 			let thread = this.currentChatThread();
 			if (thread && thread.length > 0) {
 				this.loadingHistory = true;
-				this.dataService.getHistory(this.selectedCustomer.customerId, this.selectedCustomer.businessId, 50, 0, thread[0].meta.timestamp).subscribe(resData => {
+				this.dataService.getHistory(this.selectedCustomer.customerId, this.selectedCustomer.businessId, 50, 0, thread[0].meta.timestamp, this.selectedCustomer.flowId).subscribe(resData => {
 					try {
 						resData.content.forEach(x => {
 							if (thread.filter(msg => msg.meta.id == x.meta.id).length > 0)
@@ -469,7 +469,8 @@ export class ChatComponent implements OnInit {
 				"id": ChatComponent.uuidv4(),
 				"sessionId": lastMsg.meta.sessionId,
 				"timestamp": new Date().getTime(),
-				"responseTo": lastMsg.meta.id
+				"responseTo": lastMsg.meta.id,
+				"flowId": lastMsg.meta.flowId
 			}
 		};
 

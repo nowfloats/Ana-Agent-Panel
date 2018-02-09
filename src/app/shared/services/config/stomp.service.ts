@@ -105,6 +105,7 @@ export class StompService {
 							agentId: '',
 							assignedAt: Date(),
 							businessId: eventMsg.meta.recipient.id,
+							flowId: eventMsg.meta.flowId,
 							created_at: '',
 							customerId: eventMsg.meta.sender.id,
 							id: 0,
@@ -118,6 +119,7 @@ export class StompService {
 							agentId: '',
 							assignedAt: Date(),
 							businessId: '',
+							flowId: '',
 							created_at: '',
 							customerId: eventMsg.meta.sender.id,
 							id: 0,
@@ -134,7 +136,7 @@ export class StompService {
 	allChatsSubscription(custChats: ChatCustomerInfo[]) {
 		custChats.forEach(custChat => {
 			this.stompHeaders['id'] = this.count++;
-			this.client.subscribe('/topic/chat/customer/' + custChat.customerId + "/business/" + custChat.businessId, (message) => {
+			this.client.subscribe('/topic/chat/customer/' + custChat.customerId + "/business/" + custChat.businessId + "/flow/" + custChat.flowId, (message) => {
 				this.onMessage(JSON.parse(message.body));
 			}, this.stompHeaders);
 		});

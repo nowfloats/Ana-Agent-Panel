@@ -47,10 +47,13 @@ export class DataService {
 			.map(res => res.json() as DispositionResponse);
 	};
 
-	getHistory(customerId, businessId, pageSize, pageNumber, timeStamp?: number) {
+	getHistory(customerId, businessId, pageSize, pageNumber, timeStamp?: number, flowId?: string) {
 		let myparams = new URLSearchParams();
 		myparams.append("userId", customerId);
 		myparams.append("businessId", businessId);
+		if (flowId) {
+			myparams.append("flowId", flowId);
+		}
 		myparams.append("size", pageSize);
 
 		if (timeStamp)
@@ -129,6 +132,7 @@ export interface ChatCustomerInfo {
 	id: number;
 	customerId: string;
 	businessId: string;
+	flowId: string;
 	agentId: string;
 	assignedAt: any;
 	unreadCount: number;

@@ -11,6 +11,7 @@ export interface ANAMeta {
     timestamp: number;
     sessionId: string;
     responseTo: string;
+    flowId: string;
 }
 
 export enum InputType {
