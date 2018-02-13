@@ -222,7 +222,7 @@ export class ChatComponent implements OnInit {
 		}
 		if (cust && cust.messages && cust.messages.content && cust.messages.content.length > 0) {
 			var validMsgsForPreview = cust.messages.content.filter(x => x.data.type == models.MessageType.SIMPLE || (x.data.type == models.MessageType.INPUT && (<models.InputContent>x.data.content).input && (<models.InputContent>x.data.content).input.val))
-			return this.msgPreviewText(validMsgsForPreview[validMsgsForPreview.length - 1]);
+			return this.msgPreviewText(validMsgsForPreview[0]);
 		}
 		return "";
 	}
@@ -345,6 +345,11 @@ export class ChatComponent implements OnInit {
 			this.router.navigateByUrl('/');
 			return;
 		}
+		this.loadChats();
+	}
+
+	searchChats() {
+		this.page = 0;
 		this.loadChats();
 	}
 
