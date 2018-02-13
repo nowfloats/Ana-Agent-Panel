@@ -30,7 +30,6 @@ import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
 import { Router } from "@angular/router";
 import * as models from '../../shared/model/ana-chat.models';
-import { ANAChatMessage, SenderType, InputContent, OptionsInputContent } from "../../shared/model/ana-chat.models";
 import { setTimeout } from "timers";
 import { InfoDialogService } from "app/shared/services/helpers/info-dialog.service";
 import { EndChatComponent } from "app/shared/components/end-chat/end-chat.component";
@@ -47,7 +46,6 @@ export class ChatComponent implements OnInit {
 	navMode = "side";
 	@Input() chatId;
 	chat: any;
-	chatThread: any[] = [];
 	recipientMedium: number
 	threadId: any;
 	threads: any;
@@ -74,7 +72,7 @@ export class ChatComponent implements OnInit {
 	} as ChatsResponse;
 	tempData = {};
 	chatThreads: {
-		[custId: string]: ANAChatMessage[]
+		[custId: string]: models.ANAChatMessage[]
 	} = {};
 
 	selectedCustomer: ChatCustomerInfo;
@@ -118,7 +116,7 @@ export class ChatComponent implements OnInit {
 		this.loadSettings();
 
 		this.stompService.handleMessageReceived = (msg) => {
-			if (msg.data && Object.keys(msg.data).length > 0 && msg.meta.senderType != SenderType.AGENT) {
+			if (msg.data && Object.keys(msg.data).length > 0 && msg.meta.senderType != models.SenderType.AGENT) {
 				this.newMessageNotifyUser();
 				this.addMsgToThread(msg.meta.sender.id, msg);
 
@@ -181,24 +179,13 @@ export class ChatComponent implements OnInit {
 	}
 
 	endChat() {
-		let sessionId = this.getSessionIdFromActiveThread();
-		if (this.selectedCustomer && sessionId) {
-			this.infoDialog.confirm("Confirmation", `Are you sure you want to end the chat with customer: ${this.selectedCustomer.customerId}?`, (ok) => {
+		if (this.selectedCustomer) {
+			this.infoDialog.confirm("Confirmation", `Are you sure you want to end the chat with customer: ${this.selectedCustomer.sessionId}?`, (ok) => {
 				if (ok) {
 					let d = this.dialog.open(EndChatComponent, {
 						width: 'auto',
-						data: sessionId
+						data: this.selectedCustomer.sessionId
 					});
-					// d.afterClosed().subscribe(x => {
-					// 	if (x == true) {
-					// 		this.customersList.splice(this.customersList.findIndex(x => x.customerId == this.selectedCustomer.customerId), 1);
-					// 		if (this.customersList.length > 0) {
-					// 			this.selectedCustomer = this.customersList[0];
-					// 		} else {
-					// 			this.selectedCustomer = null;
-					// 		}
-					// 	}
-					// });
 				}
 			});
 		}
@@ -228,23 +215,19 @@ export class ChatComponent implements OnInit {
 	agentName: string;
 	agentRole: string;
 
-	latestMessage(custId: string) {
-		try {
-			let threadMsgs = this.chatThreads[custId]
-				.filter(chatMsg => !(chatMsg.data.type == 2 && (!(<InputContent>chatMsg.data.content).input || !(<InputContent>chatMsg.data.content).input.val)));
-			return this.msgPreviewText(threadMsgs[threadMsgs.length - 1]);
-		} catch (error) {
-			return "";
+	latestMessage(cust: ChatCustomerInfo) {
+		let custChatThread = this.chatThreads[cust.customerId];
+		if (custChatThread && custChatThread.length > 0) {
+			return this.msgPreviewText(custChatThread[custChatThread.length - 1]);
 		}
+		if (cust && cust.messages && cust.messages.content && cust.messages.content.length > 0) {
+			var validMsgsForPreview = cust.messages.content.filter(x => x.data.type == models.MessageType.SIMPLE || (x.data.type == models.MessageType.INPUT && (<models.InputContent>x.data.content).input && (<models.InputContent>x.data.content).input.val))
+			return this.msgPreviewText(validMsgsForPreview[validMsgsForPreview.length - 1]);
+		}
+		return "";
 	}
 
 	searchText: string;
-	searchedCustomersList() {
-		let custName = this.searchText;
-		if (!custName)
-			return this.customersList;
-		return this.customersList.filter(x => x.customerId && x.customerId.toLowerCase().indexOf(custName.toLowerCase()) != -1);
-	}
 
 	addMsgToCurrentThread(msg: any) {
 		let thread = this.currentChatThread();
@@ -335,6 +318,20 @@ export class ChatComponent implements OnInit {
 		}
 		return !HIDE;
 	}
+
+	chatsPrev() {
+		this.page--;
+		this.loadChats();
+	}
+
+	chatsNext() {
+		this.page++;
+		this.loadChats();
+	}
+
+	page: number = 0;
+	size: number = 10;
+	totalChatPages: number = 0;
 	ngOnInit() {
 		if (window.innerWidth < 992) {
 			this.navMode = "over";
@@ -348,18 +345,21 @@ export class ChatComponent implements OnInit {
 			this.router.navigateByUrl('/');
 			return;
 		}
-		this.dataService.getChatDetails().subscribe((resData) => {
+		this.loadChats();
+	}
+
+	loadChats() {
+		this.dataService.getChatDetails(this.page, this.size, this.searchText).subscribe((resData) => {
 			if (resData.error) {
 				this.infoDialog.alert('Unable to get the chats', resData.error.message);
 			} else {
-				this.customersList = resData.data.content;
+				this.customersList = resData.data.content.sort((a, b) => a.lastMessageTime - b.lastMessageTime);
+				this.page = resData.data.number;
+				this.totalChatPages = resData.data.totalPages;
+
 				this.stompService.handleConnect = () => {
 					this.stompService.allChatsSubscription(this.customersList);
-
 					if (this.customersList && this.customersList.length > 0) {
-						this.customersList.forEach(cust => {
-							this.loadHistoryOfCustomer(cust);
-						});
 						this.onCustomerSelected(this.customersList[0]);
 					}
 				};
@@ -423,54 +423,47 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
-	getSessionIdFromActiveThread() {
-		let chatThread = this.currentChatThread();
-		let lastMsg = chatThread[chatThread.length - 1];
-		if (lastMsg)
-			return lastMsg.meta.sessionId;
-		return "";
-	}
 
 	sendMessage() {
 		let chatThread = this.currentChatThread();
 		let lastMsg = chatThread[chatThread.length - 1];
-		if (!lastMsg) {
-			this.infoDialog.alert('Oops!', 'Message thread is empty! Donno the session id!');
-			return;
-		}
-		let msg = {
-			"data": {
-				"type": 2,
-				"content": {
-					"inputType": 0,
-					"input": {
-						"val": this.newMessage
+
+		let msg: models.ANAChatMessage = {
+			data: {
+				type: 2,
+				content: <models.TextInputContent>{
+					inputType: models.InputType.TEXT,
+					input: {
+						val: this.newMessage
 					},
-					"mandatory": 1,
-					"multiple": 0,
-					"textInputAttr": {
-						"multiLine": 0,
-						"minLength": 0,
-						"maxLength": 0,
-						"placeHolder": ""
+					mandatory: 1,
+					multiple: 0,
+					textInputAttr: {
+						multiLine: 0,
+						minLength: 0,
+						maxLength: 0,
+						placeHolder: "",
+						defaultText: ""
 					}
 				}
 			},
-			"meta": {
-				"sender": {
-					"id": this.selectedCustomer.businessId,
-					"medium": 3
+			meta: {
+				sender: {
+					id: this.selectedCustomer.businessId,
+					medium: 3
 				},
-				"recipient": {
-					"id": this.selectedCustomer.customerId,
-					"medium": lastMsg.meta.recipient.medium
+				recipient: {
+					id: this.selectedCustomer.customerId,
+					medium: (lastMsg ? lastMsg.meta.recipient.medium : 3)
 				},
-				"senderType": 3,
-				"id": ChatComponent.uuidv4(),
-				"sessionId": lastMsg.meta.sessionId,
-				"timestamp": new Date().getTime(),
-				"responseTo": lastMsg.meta.id,
-				"flowId": lastMsg.meta.flowId
+				senderType: 3,
+				id: ChatComponent.uuidv4(),
+				sessionId: this.selectedCustomer.sessionId,
+				timestamp: new Date().getTime(),
+				responseTo: (lastMsg ? lastMsg.meta.id : ""),
+				flowId: (lastMsg ? lastMsg.meta.flowId : ""),
+				currentFlowId: (lastMsg ? lastMsg.meta.currentFlowId : ""),
+				previousFlowId: (lastMsg ? lastMsg.meta.previousFlowId : "")
 			}
 		};
 
@@ -508,21 +501,22 @@ export class ChatComponent implements OnInit {
 		}
 	}
 
-	msgPreviewText(chatMsg: any) {
+	msgPreviewText(chatMsg: models.ANAChatMessage) {
 		if (!chatMsg) return;
 		try {
 			switch (chatMsg.data.type) {
-				case 0:
-					return chatMsg.data.content.text;
-				case 2:
+				case models.MessageType.SIMPLE:
+					return (<models.SimpleContent>chatMsg.data.content).text;
+				case models.MessageType.INPUT:
 					{
-						switch (chatMsg.data.content.inputType) {
-							case 0:
-							case 1:
-							case 2:
-							case 3:
-								return chatMsg.data.content.input.val;
-							case 10:
+						let inputContent = (<models.InputContent>chatMsg.data.content);
+						switch (inputContent.inputType) {
+							case models.InputType.TEXT:
+							case models.InputType.EMAIL:
+							case models.InputType.PHONE:
+							case models.InputType.NUMERIC:
+								return (inputContent.input ? inputContent.input.val : "");
+							case models.InputType.OPTIONS:
 								return this.optionsText(chatMsg);
 						}
 						break;

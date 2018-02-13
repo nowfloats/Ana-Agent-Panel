@@ -25,8 +25,18 @@ export class DataService {
 		return headers;
 	}
 
-	getChatDetails() {
-		return this.http.get(this.config.app.webSocketEndPoint + "/api/chats?page=0&size=1000000", { headers: this.getHeaders() })
+	getChatDetails(page: number, size: number, search?: string, businessId?: string) {
+		let url = this.config.app.webSocketEndPoint + `/api/chats`;
+		let params = new URLSearchParams();
+		params.append("page", page.toString());
+		params.append("size", size.toString());
+		params.append("historySize", "5");
+		if (businessId)
+			params.append("businessId", businessId);
+		if (search)
+			params.append("searchText", search);
+
+		return this.http.get(this.config.app.webSocketEndPoint + `/api/chats?` + params, { headers: this.getHeaders() })
 			.map(res => res.json() as AgentChatsResponse);
 	};
 
@@ -127,18 +137,31 @@ export interface UserRole {
 	enabled: boolean;
 }
 
+export interface Messages {
+	content: ANAChatMessage[];
+	isFirst: boolean;
+	isLast: boolean;
+	number: number;
+	numberOfElements: number;
+	size: number;
+	totalElements: number;
+	totalPages: number;
+}
+
 
 export interface ChatCustomerInfo {
-	id: number;
-	customerId: string;
-	businessId: string;
-	flowId: string;
 	agentId: string;
-	assignedAt: any;
+	assignedAt: number;
+	businessId: string;
+	createdAt: number;
+	customerId: string;
+	flowId: string;
+	id: string;
+	lastMessageTime: number;
+	messages: Messages;
+	sessionId: string;
+	status: string;
 	unreadCount: number;
-	status: number;
-	created_at: any;
-	last_message_time: any;
 }
 
 export interface AgentChatsData {

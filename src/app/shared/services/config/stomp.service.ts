@@ -4,7 +4,7 @@ import * as StompJS from 'stompjs';
 import { ConfigService } from './config.service'
 import { DataService, ChatCustomerInfo } from '../data/data.service'
 import { parse } from 'date-fns';
-import { EventType } from 'app/shared/model/ana-chat.models';
+import { EventType, ANAChatMessage } from 'app/shared/model/ana-chat.models';
 
 @Injectable()
 export class StompService {
@@ -91,7 +91,7 @@ export class StompService {
 		this.stompHeaders['id'] = this.count++;
 		this.client.subscribe('/queue/events/user/' + this._config.profile.userId, (message) => {
 
-			var eventMsg = JSON.parse(message.body);
+			var eventMsg = JSON.parse(message.body) as ANAChatMessage;
 			for (var i = 0; i < eventMsg.events.length; i++) {
 				var eventType = eventMsg.events[i].type;
 				if (eventType == EventType.CHAT_ALLOCATION) {
@@ -103,29 +103,33 @@ export class StompService {
 					if (this.handleNewChat)
 						this.handleNewChat({
 							agentId: '',
-							assignedAt: Date(),
+							assignedAt: 0,
 							businessId: eventMsg.meta.recipient.id,
 							flowId: eventMsg.meta.flowId,
-							created_at: '',
 							customerId: eventMsg.meta.sender.id,
-							id: 0,
-							last_message_time: '',
-							status: 0,
-							unreadCount: 0
+							id: "",
+							unreadCount: 0,
+							createdAt: 0,
+							lastMessageTime: 0,
+							messages: null,
+							sessionId: eventMsg.meta.sessionId,
+							status: ""
 						});
 				} else if (eventType == EventType.CHAT_DEALLOCATION) {
 					if (this.handleChatDeallocation) {
 						this.handleChatDeallocation({
 							agentId: '',
-							assignedAt: Date(),
+							assignedAt: 0,
 							businessId: '',
 							flowId: '',
-							created_at: '',
 							customerId: eventMsg.meta.sender.id,
-							id: 0,
-							last_message_time: '',
-							status: 0,
-							unreadCount: 0
+							id: "",
+							status: "",
+							unreadCount: 0,
+							createdAt: 0,
+							lastMessageTime: 0,
+							messages: null,
+							sessionId: eventMsg.meta.sessionId
 						});
 					}
 				}

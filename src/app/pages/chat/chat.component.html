@@ -11,26 +11,33 @@
                         <div class="subtitle">{{agentRole}}</div>
                     </div>
                     <div>
-                        <md-input-container floatPlaceholder="auto" class="float-auto" style="margin-top: 10px">
-                            <input mdInput class="block" placeholder="Search" name="searchText" [(ngModel)]="searchText" autocomplete="off">
+                        <md-input-container floatPlaceholder="never" class="float-auto" style="margin-top: 10px; width: 100% !important">
+                            <input mdInput class="block" placeholder="Search" name="searchText" [(ngModel)]="searchText" autocomplete="off" (keyup.enter)="loadChats()">
                         </md-input-container>
+                        <section class="chats-range">
+                            <span>
+                                <button title="Previous page of chats" md-icon-button [disabled]="page<=0" (click)="chatsPrev()"><md-icon>keyboard_arrow_left</md-icon></button>
+                            </span>
+                            <span class="pages">
+                                <span> {{page+1}}/{{totalChatPages}} </span>
+                            </span>
+                            <span>
+                                <button title="Next page of chats" md-icon-button [disabled]="page>=(totalChatPages-1)" (click)="chatsNext()"><md-icon>keyboard_arrow_right</md-icon></button>
+                            </span>
+                        </section>
                     </div>
                 </header>
                 <nav class="submenu">
                     <ul class="list-group">
-                        <!-- <li class="list-group-item" *ngFor="let thread of threads | filter:term" md-ripple (click)="selectUser(thread.threadId,thread.userId)"> -->
-                        <li class="list-group-item" *ngFor="let customer of searchedCustomersList()" [class.list-item-selected]="isCustomerSelected(customer)"
-                            md-ripple (click)="onCustomerSelected(customer)">
-                            <!-- <span class="float-left"><img src="{{thread.img}}" alt="" class="rounded-circle max-w-40 m-r-10"></span> -->
-                            <span class="float-left">
-                                <img src="assets/img/profiles/avatar.png" class="rounded-circle max-w-40 m-r-10">
-                            </span>
+                        <li class="list-group-item" *ngFor="let customer of customersList" [class.list-item-selected]="isCustomerSelected(customer)" md-ripple (click)="onCustomerSelected(customer)">
                             <div class="list-group-item-body">
-                                <div class="list-group-item-heading">{{customer.customerId}}
+                                <div class="list-group-item-heading">
+                                    {{customer.customerId}}
                                     <b *ngIf="customer.unreadCount" style="color:crimson">({{customer.unreadCount}})</b>
                                 </div>
-                                <div class="list-group-item-text">{{latestMessage(customer.customerId)}}
-                                    <br/>
+                                <div class="list-group-item-text">
+                                    {{latestMessage(customer)}}
+                                    <br />
                                     <span class="list-group-item-text-time" style="font-size: 10px;font-style: italic">{{customer.assignedAt | date:'medium'}}</span>
                                 </div>
                             </div>
@@ -39,8 +46,6 @@
                 </nav>
             </aside>
         </md-sidenav>
-        <!-- /END Sidenav -->
-        <!-- Page Content -->
         <div class="content">
             <div class="header-wrapper header-sm">
                 <header class="container-fluid">
@@ -61,7 +66,6 @@
                     <li>
                         <a href="javascript:void(0)">
                             <img class="rounded-circle max-w-40" src="assets/img/profiles/avatar.png" />
-                            <!-- <img class="rounded-circle max-w-40" src="{{activeProfile.img}}" alt="{{activeProfile.displayName}}" /> -->
                             <span class="display-name">{{selectedCustomer.customerId}}</span>
                         </a>
                     </li>
@@ -89,8 +93,7 @@
                     <div id="messages" class="bs-example" #scrollMe (scroll)="onScroll($event)">
                         <div *ngFor="let chatMsg of currentChatThread()">
                             <div class="bubble-wrapper" *ngIf="!isChatMessageHidden(chatMsg)">
-                                <img [src]="getMsgImage(chatMsg.meta.senderType)" class="avatar" [class.you]="isYou(chatMsg.meta.senderType)" [class.me]="isMe(chatMsg.meta.senderType)"
-                                />
+                                <img [src]="getMsgImage(chatMsg.meta.senderType)" class="avatar" [class.you]="isYou(chatMsg.meta.senderType)" [class.me]="isMe(chatMsg.meta.senderType)" />
                                 <div class="bubble" [class.chat-bubble-you]="isYou(chatMsg.meta.senderType)" [class.chat-bubble-me]="isMe(chatMsg.meta.senderType)">
                                     <div [ngSwitch]="chatMsg.data.type">
                                         <div *ngSwitchCase="0">
@@ -126,7 +129,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     <section class="chat-empty" *ngIf="!selectedCustomer">
@@ -140,15 +142,14 @@
                     </section>
                 </div>
             </div>
-            <!--  Chat Input Wrapper -->
-            
+
             <div id="chat_input_wrapper" *ngIf="selectedCustomer">
                 <form class="form-horizontal p-b-30">
                     <div class="form-group row">
                         <div class="col">
                             <md-input-container floatPlaceholder="auto" class="float-auto">
                                 <input mdInput class="block" placeholder="Send a message" name="newMessage" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
-                                    autocomplete="off">
+                                       autocomplete="off">
                                 <button md-icon-button mdSuffix style="background: transparent !important" type="button" (click)="sendMessage()">
                                     <i class="zmdi zmdi-mail-send"></i>
                                 </button>
@@ -164,6 +165,4 @@
             </div>
         </div>
     </md-sidenav-container>
-    <!-- /END Sidenav component container -->
 </div>
-<!-- /END Content Wrapper - Left Sidenav 2-->

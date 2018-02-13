@@ -20,6 +20,7 @@ i.zmdi.zmdi-mail-send {
 .chat-wrapper {
     .content {
         height: 99vh;
+
         .content-body:after {
             // background: url('assets/img/patterns/hypnotize.png'); //background: url('assets/img/patterns/seigaiha.png');
             opacity: 0.5;
@@ -31,13 +32,16 @@ i.zmdi.zmdi-mail-send {
             position: absolute;
             z-index: -1;
         }
+
         .content-body {
             padding: 0;
         }
+
         #messages {
             overflow-y: scroll !important;
             height: 79vh;
         }
+
         .activeProfile {
             margin: 0;
             padding: 0;
@@ -45,18 +49,21 @@ i.zmdi.zmdi-mail-send {
             position: absolute;
             left: 70px;
             top: 20px;
+
             .display-name {
                 font-size: 14px;
                 padding: 0 10px;
                 font-weight: 600;
             }
         }
+
         .chat-empty {
             width: 100%;
             height: 100%;
             padding-top: 20%;
             text-align: center;
             min-height: calc(100vh - 200px) !important;
+
             .chat-icon {
                 width: 200px;
                 height: 200px;
@@ -65,6 +72,7 @@ i.zmdi.zmdi-mail-send {
                 text-align: center;
                 margin: 0 auto 20px;
                 position: relative;
+
                 &:after {
                     content: '\f266';
                     font-family: $materialDesignIconic;
@@ -72,26 +80,31 @@ i.zmdi.zmdi-mail-send {
                     font-size: rem(120px); // line-height: 1.7;
                 }
             }
+
             h3 {
                 font-size: rem(22px);
             }
         }
+
         .bs-example {
             flex: 1;
             padding: 15px;
             border-style: none;
             overflow-y: auto;
         }
+
         .author {
             font-size: 8px;
             opacity: 0.7;
             font-style: italic;
         }
+
         p {
             font-size: 16px;
             margin-bottom: 0px;
             line-height: 30px;
         }
+
         .bubble {
             border-radius: 6px;
             display: inline-block;
@@ -99,7 +112,8 @@ i.zmdi.zmdi-mail-send {
             position: relative;
             vertical-align: top;
             box-shadow: 0 1px 0.5px rgba(0, 0, 0, .13);
-        } // .bubble::before {
+        }
+        // .bubble::before {
         //     content: "\00a0";
         //     display: block;
         //     height: 14px;
@@ -117,22 +131,27 @@ i.zmdi.zmdi-mail-send {
             margin: 10px 15vw 5px 4vw;
             float: left;
         }
+
         .chat-bubble-you::before {
             left: -9px;
         }
+
         .chat-bubble-me {
             background-color: #fffcea;
             display: inherit;
             margin: 10px 4vw 5px 15vw;
             float: right;
         }
+
         .chat-bubble-me::before {
             background-color: #fffcea;
             right: -9px;
         }
+
         .bubble-wrapper {
             position: relative;
             display: flow-root;
+
             .avatar {
                 display: none;
                 width: 40px;
@@ -148,14 +167,17 @@ i.zmdi.zmdi-mail-send {
                 box-shadow: 0 1px 0.5px rgba(0, 0, 0, .13);
                 position: absolute;
                 top: 30px;
+
                 &.you {
                     left: 20px;
                 }
+
                 &.me {
                     right: 10px;
                 }
             }
         }
+
         .main-bottom {
             margin: 0.7rem 0 1.5rem;
         }
@@ -167,14 +189,16 @@ aside {
         position: relative;
         padding: 15px !important;
         // height: 65px;
-        .subtitle{
+        .subtitle {
             font-size: 13px;
             opacity: 0.8;
         }
-        .title{
+
+        .title {
             font-size: 20px;
         }
     }
+
     #filter_contact_wrapper {
         .header-search-icon {
             position: absolute;
@@ -182,6 +206,7 @@ aside {
             top: 9px;
             color: rgba(104, 134, 150, .7);
         }
+
         .filter-contacts {
             background: #ffffff;
             border-radius: 30px;
@@ -206,4 +231,21 @@ aside {
 
 .list-item-selected {
     background: #bee1f7;
+}
+
+.chats-range {
+    display: flex;
+    flex-direction: row;
+    margin: -14px;
+
+    & .pages {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+
+        & span {
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
 }
