@@ -132,6 +132,8 @@ export class StompService {
 							sessionId: eventMsg.meta.sessionId
 						});
 					}
+				} else if (eventType == EventType.TYPING) {
+					console.log("Typing");
 				}
 			}
 		}, this.stompHeaders);
@@ -140,7 +142,9 @@ export class StompService {
 	allChatsSubscription(custChats: ChatCustomerInfo[]) {
 		custChats.forEach(custChat => {
 			this.stompHeaders['id'] = this.count++;
-			this.client.subscribe('/topic/chat/customer/' + custChat.customerId + "/business/" + custChat.businessId + "/flow/" + custChat.flowId, (message) => {
+
+			let channel = (custChat.flowId ? `/topic/chat/customer/${custChat.customerId}/business/${custChat.businessId}/flow/${custChat.flowId}` : `/topic/chat/customer/${custChat.customerId}/business/${custChat.businessId}`);
+			this.client.subscribe(channel, (message) => {
 				this.onMessage(JSON.parse(message.body));
 			}, this.stompHeaders);
 		});

@@ -4,7 +4,7 @@
   "license": "GNU GPLv2",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port=4501",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
