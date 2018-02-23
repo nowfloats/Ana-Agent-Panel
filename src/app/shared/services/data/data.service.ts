@@ -25,12 +25,12 @@ export class DataService {
 		return headers;
 	}
 
-	getChatDetails(page: number, size: number, search?: string, businessId?: string) {
+	getChatDetails(page: number, size: number, search?: string, businessId?: string, historySize: number = 5) {
 		let url = this.config.app.webSocketEndPoint + `/api/chats`;
 		let params = new URLSearchParams();
 		params.append("page", page.toString());
 		params.append("size", size.toString());
-		params.append("historySize", "5");
+		params.append("historySize", historySize.toString());
 		if (businessId)
 			params.append("businessId", businessId);
 		if (search)
@@ -110,6 +110,7 @@ export class DataService {
 
 export interface LoginData {
 	userId: string;
+	businessId: string;
 	username: string;
 	accessToken: string;
 	name: string;

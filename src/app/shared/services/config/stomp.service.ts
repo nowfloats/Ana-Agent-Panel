@@ -37,7 +37,10 @@ export class StompService {
 	public disconnect() {
 		this.clearTimer();
 		if (this.client && this.client.connected) {
-			this.client.disconnect(() => this.debug("WebSocket Disconnected"));
+			this.client.disconnect(() => {
+				this.debug("WebSocket Disconnected");
+				this.connectionStatus = StompConnectionStatus.Disconnected;
+			});
 			delete this.client;
 			delete this.sockInstance;
 		}
@@ -81,16 +84,14 @@ export class StompService {
 
 	private subscribe = () => {
 		this.stompHeaders['user_id'] = this._config.profile.userId;
-		let userId = this._config.profile.userId
+		let userId = this._config.profile.userId;
 		this.stompHeaders['id'] = this.count++;
-
 		this.client.subscribe('/topic/presence', (message) => {
 			this.client.send("/app/presence", this.stompHeaders, JSON.stringify({ user_id: userId }));
 		}, this.stompHeaders);
 
 		this.stompHeaders['id'] = this.count++;
 		this.client.subscribe('/queue/events/user/' + this._config.profile.userId, (message) => {
-
 			var eventMsg = JSON.parse(message.body) as ANAChatMessage;
 			for (var i = 0; i < eventMsg.events.length; i++) {
 				var eventType = eventMsg.events[i].type;
@@ -103,14 +104,14 @@ export class StompService {
 					if (this.handleNewChat)
 						this.handleNewChat({
 							agentId: '',
-							assignedAt: 0,
+							assignedAt: eventMsg.meta.timestamp,
 							businessId: eventMsg.meta.recipient.id,
 							flowId: eventMsg.meta.flowId,
 							customerId: eventMsg.meta.sender.id,
-							id: "",
+							id: eventMsg.meta.id,
 							unreadCount: 0,
-							createdAt: 0,
-							lastMessageTime: 0,
+							createdAt: eventMsg.meta.timestamp,
+							lastMessageTime: eventMsg.meta.timestamp,
 							messages: null,
 							sessionId: eventMsg.meta.sessionId,
 							status: ""
@@ -142,7 +143,6 @@ export class StompService {
 	allChatsSubscription(custChats: ChatCustomerInfo[]) {
 		custChats.forEach(custChat => {
 			this.stompHeaders['id'] = this.count++;
-
 			let channel = (custChat.flowId ? `/topic/chat/customer/${custChat.customerId}/business/${custChat.businessId}/flow/${custChat.flowId}` : `/topic/chat/customer/${custChat.customerId}/business/${custChat.businessId}`);
 			this.client.subscribe(channel, (message) => {
 				this.onMessage(JSON.parse(message.body));
@@ -182,7 +182,7 @@ export class StompService {
 		this.client.send(`/app/message`, headers, JSON.stringify(msg));
 	}
 
-	handleMessageReceived: (message: any) => void;
+	handleMessageReceived: (message: ANAChatMessage) => void;
 	handleConnect: () => void;
 	handleNewChat: (custInto: ChatCustomerInfo) => void;
 	handleChatDeallocation: (custInto: ChatCustomerInfo) => void;

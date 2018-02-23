@@ -36,6 +36,7 @@ export class ConfigService {
 			user: loginDetails.name,
 			userEmail: loginDetails.name,
 			userId: loginDetails.userId,
+			businessId: loginDetails.businessId,
 			accessToken: loginDetails.accessToken,
 			loginData: loginDetails
 		};
@@ -47,6 +48,7 @@ export class ConfigService {
 export interface UserProfile {
 	userId: string,
 	user: string,
+	businessId: string;
 	userEmail: string,
 	userImg?: string,
 	userTitle?: string,

@@ -15,9 +15,9 @@ import {
 	TemplateRef,
 	NgZone, DoCheck
 } from "@angular/core";
-import { Inject } from "@angular/core"
+import { Inject, OnDestroy } from "@angular/core"
 import { DOCUMENT } from "@angular/platform-browser"
-import { StompService, StompConfig, ChatsResponse } from "../../shared/services/config/stomp.service"
+import { StompService, StompConfig, ChatsResponse, StompConnectionStatus } from "../../shared/services/config/stomp.service"
 import { GlobalState } from "../../app.state";
 import { ConfigService, UserProfile } from "../../shared/services/config/config.service";
 import { ChatCustomerInfo } from '../../shared/services/data/data.service';
@@ -40,7 +40,8 @@ import { EndChatComponent } from "app/shared/components/end-chat/end-chat.compon
 	styleUrls: ["./chat.component.scss"]
 })
 
-export class ChatComponent implements OnInit {
+export class ChatComponent implements OnInit, OnDestroy {
+
 	@ViewChild("leftSidenav2") leftSidenav2: MdSidenav;
 	@ViewChild("chatProfile") chatProfile: TemplateRef<any>;
 	navMode = "side";
@@ -118,12 +119,29 @@ export class ChatComponent implements OnInit {
 		this.stompService.handleMessageReceived = (msg) => {
 			if (msg.data && Object.keys(msg.data).length > 0 && msg.meta.senderType != models.SenderType.AGENT) {
 				this.newMessageNotifyUser();
+				let custs = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
+				if (custs && custs.length <= 0) {
+					this.customersList.unshift({
+						agentId: "",
+						assignedAt: 0,
+						businessId: msg.meta.recipient.id,
+						createdAt: msg.meta.timestamp,
+						customerId: msg.meta.sender.id,
+						flowId: msg.meta.flowId,
+						id: msg.meta.id,
+						lastMessageTime: msg.meta.timestamp,
+						messages: null,
+						sessionId: msg.meta.sessionId,
+						status: "",
+						unreadCount: 1
+					});
+				}
+
 				this.addMsgToThread(msg.meta.sender.id, msg);
 
 				if (!this.selectedCustomer || this.selectedCustomer.customerId != msg.meta.sender.id) {
-					let cust = this.customersList.filter(x => x.customerId == msg.meta.sender.id);
-					if (cust && cust.length > 0) {
-						cust[0].unreadCount++;
+					if (custs && custs.length > 0) {
+						custs[0].unreadCount++;
 						this.customersList = this.customersList.sort((a, b) => {
 							return b.unreadCount - a.unreadCount;
 						});
@@ -151,6 +169,17 @@ export class ChatComponent implements OnInit {
 				this.selectedCustomer = null;
 			}
 		};
+
+		this.stompService.handleConnect = () => {
+			this.dataService.getChatDetails(0, 10000, null, this.configService.profile.loginData.businessId, 0).subscribe((resData) => {
+				if (resData.error) {
+					this.infoDialog.alert('Unable to get the chats', resData.error.message);
+				} else {
+					this.stompService.allChatsSubscription(resData.data.content);
+				}
+			});
+		};
+
 		try {
 			this.agentName = this.configService.profile.loginData.name;
 			this.agentRole = this.configService.profile.loginData.roles.map(x => x.label).join(', ');
@@ -236,7 +265,7 @@ export class ChatComponent implements OnInit {
 		thread.push(msg);
 	}
 
-	addMsgToThread(custId: string, msg: any) {
+	addMsgToThread(custId: string, msg: models.ANAChatMessage) {
 		if (!this.chatThreads[custId])
 			this.chatThreads[custId] = [];
 		if (this.chatThreads[custId].filter(x => x.meta.id == msg.meta.id).length > 0)
@@ -273,18 +302,18 @@ export class ChatComponent implements OnInit {
 	}
 
 	logout() {
-		this.dataService.logout();
 		this.stompService.disconnect();
+		this.dataService.logout();
 		this.router.navigateByUrl('/');
 	}
 	onCustomerSelected(cust: ChatCustomerInfo) {
 		this.selectedCustomer = cust;
 		this.selectedCustomer.unreadCount = 0;
 
-		if (!this.chatThreads[cust.customerId]) {
+		if (!this.chatThreads[cust.customerId] || this.chatThreads[cust.customerId].length <= 5) {
 			this.loadHistoryOfCustomer(cust, () => {
 				this.scrollActiveChatToBottom();
-			})
+			});
 		}
 		else {
 			this.scrollActiveChatToBottom();
@@ -345,7 +374,19 @@ export class ChatComponent implements OnInit {
 			this.router.navigateByUrl('/');
 			return;
 		}
+		this.stompSetup();
 		this.loadChats();
+	}
+
+	ngOnDestroy(): void {
+		this.logout();
+	}
+
+	stompSetup() {
+		this.stompService.connect({
+			debug: true,
+			endpoint: this.configService.app.webSocketEndPoint
+		});
 	}
 
 	searchChats() {
@@ -354,24 +395,13 @@ export class ChatComponent implements OnInit {
 	}
 
 	loadChats() {
-		this.dataService.getChatDetails(this.page, this.size, this.searchText).subscribe((resData) => {
+		this.dataService.getChatDetails(this.page, this.size, this.searchText, this.configService.profile.loginData.businessId).subscribe((resData) => {
 			if (resData.error) {
 				this.infoDialog.alert('Unable to get the chats', resData.error.message);
 			} else {
 				this.customersList = resData.data.content.sort((a, b) => a.lastMessageTime - b.lastMessageTime);
 				this.page = resData.data.number;
 				this.totalChatPages = resData.data.totalPages;
-
-				this.stompService.handleConnect = () => {
-					this.stompService.allChatsSubscription(this.customersList);
-					if (this.customersList && this.customersList.length > 0) {
-						this.onCustomerSelected(this.customersList[0]);
-					}
-				};
-				this.stompService.connect({
-					debug: true,
-					endpoint: this.configService.app.webSocketEndPoint
-				});
 			}
 		});
 	}
