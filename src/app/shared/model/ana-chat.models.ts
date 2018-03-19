@@ -289,4 +289,10 @@ export interface ANAChatMessage {
 	meta: ANAMeta;
 	data: ANAMessageData;
 	events?: ANAEvent[];
+	customData?: CustomData;
+}
+
+export interface CustomData {
+	ackId?: string;
+	status?: 'pending' | 'sent' | 'delivered';
 }

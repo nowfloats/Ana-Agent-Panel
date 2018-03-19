@@ -37,6 +37,10 @@
                                 </div>
                                 <div class="list-group-item-text">
                                     {{latestMessage(customer)}}
+                                    <span *ngIf="usersTyping[customer.customerId]">
+                                        <br />
+                                        Typing...
+                                    </span>
                                     <br />
                                     <span class="list-group-item-text-time" style="font-size: 10px;font-style: italic">{{customer.assignedAt | date:'medium'}}</span>
                                 </div>
@@ -67,6 +71,7 @@
                         <a href="javascript:void(0)">
                             <img class="rounded-circle max-w-40" src="assets/img/profiles/avatar.png" />
                             <span class="display-name">{{selectedCustomer.customerId}}</span>
+                            <span *ngIf="selectedCustomer && usersTyping[selectedCustomer.customerId]">Typing...</span>
                         </a>
                     </li>
                 </ul>
@@ -124,7 +129,7 @@
                                         </div>
                                     </div>
                                     <div class="author">
-                                        {{ chatMsg.meta.timestamp | date:"MM/dd/yyyy hh:mm a" }}
+                                        {{ chatMsg.meta.timestamp | date:"MM/dd/yyyy hh:mm a" }} {{chatMsg.customData ? '- ' + chatMsg.customData.status : ''}}
                                     </div>
                                 </div>
                             </div>

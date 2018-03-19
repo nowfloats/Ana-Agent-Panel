@@ -134,7 +134,11 @@ export class StompService {
 						});
 					}
 				} else if (eventType == EventType.TYPING) {
-					console.log("Typing");
+					if (this.handleTyping)
+						this.handleTyping(eventMsg.meta.recipient.id);
+				} else if (eventType == EventType.ACK) {
+					if (this.handleAck)
+						this.handleAck(eventMsg.meta.recipient.id, message.headers['tid'], false);
 				}
 			}
 		}, this.stompHeaders);
@@ -173,12 +177,28 @@ export class StompService {
 
 	private msgsIds: string[] = [];
 	private onMessage = (messageBody: any) => {
+		try {
+			var msg = messageBody as ANAChatMessage;
+			for (var i = 0; i < msg.events.length; i++) {
+				var eventType = msg.events[i].type;
+				if (eventType == EventType.TYPING) {
+					if (this.handleTyping)
+						this.handleTyping(msg.meta.sender.id);
+				} else if (eventType == EventType.ACK) {
+					if (this.handleAck)
+						this.handleAck(msg.meta.sender.id, msg.meta.responseTo, true);
+				}
+			}
+		} catch (e) {
+			console.error(e);
+		}
 		if (this.handleMessageReceived)
 			this.handleMessageReceived(messageBody);
 	}
 
-	sendMessage(msg: any) {
+	sendMessage(msg: ANAChatMessage) {
 		let headers = this.stompHeaders;
+		headers['tid'] = msg.customData.ackId;
 		this.client.send(`/app/message`, headers, JSON.stringify(msg));
 	}
 
@@ -186,6 +206,8 @@ export class StompService {
 	handleConnect: () => void;
 	handleNewChat: (custInto: ChatCustomerInfo) => void;
 	handleChatDeallocation: (custInto: ChatCustomerInfo) => void;
+	handleTyping: (custId: string) => void;
+	handleAck: (custId: string, msgId: string, delivered?: boolean) => void;
 }
 export interface StompConfig {
 	endpoint: string;

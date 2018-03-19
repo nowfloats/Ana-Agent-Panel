@@ -24,7 +24,6 @@ import { ChatCustomerInfo } from '../../shared/services/data/data.service';
 import { MdSidenav, MdDialog } from "@angular/material";
 import { Observable } from "rxjs";
 import { DataService } from "../../shared/services/data/data.service";
-import { uuid } from "../../shared/util/uuid";
 import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 import { timestamp } from "rxjs/operator/timestamp";
 import { currentId } from "async_hooks";
@@ -180,6 +179,34 @@ export class ChatComponent implements OnInit, OnDestroy {
 			});
 		};
 
+		this.stompService.handleAck = (custId: string, ackId: string, delivered?: boolean) => {
+			try {
+				if (this.chatThreads[custId]) {
+					if (delivered) {
+						let filteredMsgs = this.chatThreads[custId].filter(x => x.meta.id == ackId) || this.chatThreads[custId].filter(x => x.meta.responseTo == ackId);
+						if (filteredMsgs && filteredMsgs.length > 0) {
+							filteredMsgs[0].customData.status = 'delivered';
+						}
+					} else {
+						this.chatThreads[custId].filter(x => x.customData && x.customData.ackId == ackId)[0].customData.status = 'sent';
+					}
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		};
+
+		this.stompService.handleTyping = (custId: string) => {
+			if (this.typingTimer) {
+				clearTimeout(this.typingTimer);
+				delete this.typingTimer;
+			}
+			this.usersTyping[custId] = true;
+			this.typingTimer = setTimeout(() => {
+				this.usersTyping[custId] = false;
+			}, 5000);
+		};
+
 		try {
 			this.agentName = this.configService.profile.loginData.name;
 			this.agentRole = this.configService.profile.loginData.roles.map(x => x.label).join(', ');
@@ -206,6 +233,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 		audio.play();
 		// this.notifyUser(title, msg);
 	}
+
+	typingTimer: NodeJS.Timer;
+	usersTyping: {
+		[custId: string]: boolean;
+	} = {};
 
 	endChat() {
 		if (this.selectedCustomer) {
@@ -499,6 +531,10 @@ export class ChatComponent implements OnInit, OnDestroy {
 				flowId: (lastMsg ? lastMsg.meta.flowId : ""),
 				currentFlowId: (lastMsg ? lastMsg.meta.currentFlowId : ""),
 				previousFlowId: (lastMsg ? lastMsg.meta.previousFlowId : "")
+			},
+			customData: {
+				ackId: ChatComponent.uuidv4(),
+				status: 'pending'
 			}
 		};
 
