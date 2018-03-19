@@ -188,7 +188,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 							filteredMsgs[0].customData.status = 'delivered';
 						}
 					} else {
-						this.chatThreads[custId].filter(x => x.customData && x.customData.ackId == ackId)[0].customData.status = 'sent';
+						let filteredMsgs = this.chatThreads[custId].filter(x => x.customData && x.customData.ackId == ackId);
+						if (filteredMsgs && filteredMsgs.length > 0) {
+							if (filteredMsgs[0].customData.status != 'delivered')
+								filteredMsgs[0].customData.status = 'sent';
+						}
 					}
 				}
 			} catch (e) {
