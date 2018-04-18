@@ -6,6 +6,9 @@
   "description": "Ana Agent Panel",
   "homepage": "http://ana.chat",
   "license": "GNU-GPLv3",
+  "scripts": {
+    "pack": "npm i && electron-rebuild -v 1.8.2 && electron-builder"
+  },
   "build": {
     "appId": "com.ana.agent-panel",
     "productName": "Ana Agent Panel",
