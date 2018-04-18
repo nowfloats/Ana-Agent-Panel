@@ -77,6 +77,12 @@
                 </ul>
                 <ul class="actions icons top-right">
                     <li>
+                        <mat-slide-toggle color="primary" [checked]="'checked'" (change)="chatConnectDisconnect($event)" [(ngModel)]="chatConnected">
+                            <p *ngIf="connect">Connected</p>
+                            <p *ngIf="!connect">Disconnected</p>
+                        </mat-slide-toggle>
+                    </li>
+                    <li>
                         <div>
                             <button md-icon-button [hidden]="!settings.disableSounds" (click)="settings.disableSounds=false; saveSettings()">
                                 <md-icon>volume_off</md-icon>

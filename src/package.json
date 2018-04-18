@@ -32,6 +32,7 @@
     }
   },
   "dependencies": {
+    "electron-spellchecker": "^1.1.2",
     "electron-updater": "^2.18.2"
   }
 }
