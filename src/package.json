@@ -7,7 +7,8 @@
   "homepage": "http://ana.chat",
   "license": "GNU-GPLv3",
   "scripts": {
-    "pack": "npm i && electron-rebuild -v 1.8.2 && electron-builder"
+    "linux-prebuild": "sudo apt-get install libxext-dev libxtst-dev libxkbfile-dev",
+    "pack": "npm i && electron-rebuild -v 1.7.9 && electron-builder"
   },
   "build": {
     "appId": "com.ana.agent-panel",
