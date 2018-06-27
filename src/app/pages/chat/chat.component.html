@@ -113,23 +113,23 @@
                                         <div *ngSwitchCase="2">
                                             <div [ngSwitch]="chatMsg.data.content.inputType">
                                                 <div *ngSwitchCase="0">
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                    <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                                 </div>
                                                 <div *ngSwitchCase="1">
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                    <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                                 </div>
                                                 <div *ngSwitchCase="2">
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                    <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                                 </div>
                                                 <div *ngSwitchCase="3">
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
+                                                    <p>{{chatMsg.data.content.input ? chatMsg.data.content.input.val : '-'}}</p>
                                                 </div>
                                                 <div *ngSwitchCase="10">
                                                     <!-- Options -->
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">{{chatMsg.data.content.input ? optionsText(chatMsg) : '-'}}</p>
+                                                    <p>{{chatMsg.data.content.input ? optionsText(chatMsg) : '-'}}</p>
                                                 </div>
                                                 <div *ngSwitchDefault>
-                                                    <p [title]="JSON.stringify(chatMsg.data.content, null, 4)">Unsupported Format</p>
+                                                    <p>Unsupported Format</p>
                                                 </div>
                                             </div>
                                         </div>
