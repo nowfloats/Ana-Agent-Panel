@@ -1,0 +1,51 @@
+language: node_js
+node_js:
+  - "v9.5.0"
+
+os:
+  - linux
+  - osx
+
+matrix:
+  allow_failures:
+    - os: osx
+
+addons:
+  apt:
+    packages:
+      - graphviz
+
+sudo: true
+dist: trusty
+
+branches:
+  only:
+    - master
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install graphviz; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install yarn --without-node; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update; fi
+
+
+install:
+  - npm i -g npm@5.7.1 # this should be deleted once 5.7.X is out of "pre-release"
+  - npm ci             # instead of default npm install 
+  - npm i node-sass
+  - npm install -g @angular/cli@1.6.1
+
+script:
+  - ng build --prod --aot=false
+
+after_success:
+  # - Upload here 
+
+notifications:
+  email:
+    - soumyajit.dutta@nowfloats.com
+    - khaja.nizamuddin@nowfloats.com
+  slack:
+    on_success: always
+    on_failure: always
