@@ -1,0 +1,37 @@
+environment:
+  nodejs_version: "9.5.0"
+
+platform:
+  - x86
+  - x64
+
+image: Visual Studio 2015
+
+# Post-install test scripts.
+install:
+  - npm i -g npm@5.7.1 # this should be deleted once 5.7.X is out of "pre-release"
+  - npm ci             # instead of default npm install 
+  - npm i node-sass
+  - npm install -g @angular/cli@1.6.1
+script:
+  - ng build --prod --aot=false
+  
+test_script:
+  # Output useful info for debugging.
+  - node --version && npm --version
+
+build: off
+
+cache:
+  - 'node_modules -> package.json'
+  - "%LOCALAPPDATA%\\Yarn"
+
+
+notifications:
+  - provider: Email
+    to:
+      - soumyajit.dutta@nowfloats.com
+      - khaja.nizamuddin@nowfloats.com
+    on_build_success: true|false
+    on_build_failure: true|false
+    on_build_status_changed: true|false
