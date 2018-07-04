@@ -13,7 +13,6 @@ install:
   - npm ci             # instead of default npm install 
   - npm i node-sass
   - npm install -g @angular/cli@1.6.1
-script:
   - ng build --prod --aot=false
   
 test_script:
