@@ -37,10 +37,18 @@ install:
   - npm install -g @angular/cli@1.6.1
 
 script:
-  - ng build --prod --aot=false
-
+  - npm run pack
+  - cd release
+  - ls -l
 after_success:
   # - Upload here 
+  #Linux only Upload to s3
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then pip install awscli --upgrade --user; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then which python; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ls -al /usr/local/bin/python; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export PATH=~/.local/bin:$PATH; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then source ~/.bash_profile; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then aws s3 ls s3://ana-content/cdn/dist/agent-panel --recursive --human-readable --summarize; fi
 
 notifications:
   email:
