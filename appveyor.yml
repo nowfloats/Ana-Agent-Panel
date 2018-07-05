@@ -10,9 +10,9 @@ image: Visual Studio 2015
 # Post-install test scripts.
 install:
   - npm i -g npm@5.7.1 # this should be deleted once 5.7.X is out of "pre-release"
-  - npm ci             # instead of default npm install 
   - npm i node-sass
   - npm install -g @angular/cli@1.6.1
+  - npm install             # instead of default npm install 
   - ng build --prod --aot=false
   
 test_script:
