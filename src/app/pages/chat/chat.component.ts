@@ -40,8 +40,8 @@ import { EndChatComponent } from "app/shared/components/end-chat/end-chat.compon
 })
 
 export class ChatComponent implements OnInit, OnDestroy {
-    connect: boolean = true;
-    chatConnected=true;
+	connect: boolean = true;
+	chatConnected = true;
 
 	@ViewChild("leftSidenav2") leftSidenav2: MdSidenav;
 	@ViewChild("chatProfile") chatProfile: TemplateRef<any>;
@@ -256,20 +256,20 @@ export class ChatComponent implements OnInit, OnDestroy {
 				}
 			});
 		}
-    }
-    chatConnectDisconnect(event) {
-        if (!this.chatConnected) {
-            this.connect = true;
-            this.stompService.connect({
-                debug: true,
-                endpoint: this.configService.app.webSocketEndPoint
-            });
-        }
-        else {
-            this.connect = false;
-            this.stompService.disconnect();
-        }
-    }
+	}
+	chatConnectDisconnect(event) {
+		if (!this.chatConnected) {
+			this.connect = true;
+			this.stompService.connect({
+				debug: true,
+				endpoint: this.configService.app.webSocketEndPoint
+			});
+		}
+		else {
+			this.connect = false;
+			this.stompService.disconnect();
+		}
+	}
 
 	// notifyUser(title, body) {
 	// 	if (!("Notification" in window)) {
@@ -358,6 +358,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 		this.router.navigateByUrl('/');
 	}
 	onCustomerSelected(cust: ChatCustomerInfo) {
+		if (this.selectedCustomer) {
+			this.selectedCustomer.draftMsgText = this.newMessage;
+		}
+
+		this.newMessage = cust.draftMsgText;
 		this.selectedCustomer = cust;
 		this.selectedCustomer.unreadCount = 0;
 

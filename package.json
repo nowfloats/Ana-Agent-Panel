@@ -10,7 +10,8 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "build-prod": "node --max_old_space_size=5048 ./node_modules/@angular/cli/bin/ng build --prod",
-    "pack": "ng build --prod --aot=false && cd dist && npm i && electron-rebuild -v 1.8.2 && electron-builder && cd .."
+    "pack": "ng build --prod --aot=false && cd dist && npm i && electron-rebuild -v 1.8.2 && electron-builder && cd ..",
+    "pack-dev": "ng build && cd dist && npm i && electron-rebuild -v 1.8.2 && electron-builder && cd .."
   },
   "private": true,
   "dependencies": {

@@ -163,6 +163,7 @@ export interface ChatCustomerInfo {
 	sessionId: string;
 	status: string;
 	unreadCount: number;
+	draftMsgText?: string;
 }
 
 export interface AgentChatsData {

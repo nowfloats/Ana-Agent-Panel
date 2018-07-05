@@ -36,7 +36,7 @@ export class EndChatComponent implements OnInit {
 		if (!this.message) return [];
 
 		try {
-			return (<OptionsInputContent>this.message.data.content).options;
+			return (<OptionsInputContent>this.message.data.content).options || [];
 		} catch (error) {
 			console.log(error);
 			return [];
