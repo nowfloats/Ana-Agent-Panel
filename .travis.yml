@@ -21,6 +21,7 @@ dist: trusty
 branches:
   only:
     - master
+    - s3-integrate
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
@@ -37,7 +38,11 @@ install:
   - npm install -g @angular/cli@1.6.1
 
 script:
-  - npm run pack
+  - ng build --prod --aot=false
+  - cd dist
+  - npm ci
+  - yarn add electron-builder --dev
+  - electron-builder && cd ..
   - cd release
   - ls -l
 after_success:
