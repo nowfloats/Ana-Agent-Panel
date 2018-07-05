@@ -39,8 +39,8 @@ install:
 
 script:
   - ng build --prod --aot=false
+  - npm i electron-builder@19.56.0 --dev
   - cd dist
-  - yarn add electron-builder@19.56.0 --dev
   - electron-builder && cd ..
   - cd release
   - ls -l
