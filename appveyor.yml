@@ -1,37 +1,52 @@
 environment:
-  nodejs_version: "9.5.0"
+    nodejs_version: 9.5.0
+    matrix:
+        -
+            PYTHON: 'C:\Python33'
+            PYTHON_VERSION: 3.3.x
+            PYTHON_ARCH: '32'
 
-platform:
-  - x86
-  - x64
-
-image: Visual Studio 2015
-
-# Post-install test scripts.
+build:
+    parallel: true
 install:
-  - npm i -g npm@5.7.1 # this should be deleted once 5.7.X is out of "pre-release"
-  - npm i -g typings
-  - npm i node-sass
-  - npm install -g @angular/cli@1.6.1
-  - npm install             # instead of default npm install 
-  - ng build --prod --aot=false
-  
+    - 'SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%'
+    - 'SET NODE_PATH=%AppData%\npm\node_modules'
+    - 'python --version'
+    - 'python -c "import struct; print(struct.calcsize(''P'') * 8)"'
+    - 'python -m pip install --upgrade pip'
+    - '%PYTHON%\python.exe -m pip install wheel'
+    - '%CMD_IN_ENV% pip install awscli'
+    - 'aws --version'
+    - 'npm i -g npm@5.7.1'
+    - 'npm i -g typings'
+    - 'npm i node-sass'
+    - 'npm install -g @angular/cli@1.6.1'
+    - 'npm install'
 test_script:
-  # Output useful info for debugging.
-  - node --version && npm --version
-
-build: off
-
+    - 'node --version && npm --version'
+build_script:
+    - 'ng build --prod --aot=false'
+    - cd dist
+    - npm i
+    - npm i -g electron-builder@19.56.0
+    - npm install -g electron-rebuild
+    - electron-rebuild -v 1.8.2
+    # - node_modules/.bin/electron-rebuild.cmd -v 1.8.2
+    - electron-builder && cd ..
+    - cd release
+    - 'aws s3 cp latest.yml s3://ana-content/cdn/dist/agent-panel/win-x64/ --acl public-read'
+    - 'aws s3 cp "Ana Agent Panel Setup 0.1.8.exe" s3://ana-content/cdn/dist/agent-panel/win-x64/ --acl public-read'
+    - 'aws s3 cp "Ana Agent Panel Setup 0.1.8.exe.blockmap" s3://ana-content/cdn/dist/agent-panel/win-x64/ --acl public-read'
+    - 'ECHO "File upload to S3 Successfull"'
 cache:
-  - 'node_modules -> package.json'
-  - "%LOCALAPPDATA%\\Yarn"
-
-
+    - 'node_modules -> package.json'
+    - '%LOCALAPPDATA%\Yarn'
 notifications:
-  - provider: Email
-    to:
-      - soumyajit.dutta@nowfloats.com
-      - khaja.nizamuddin@nowfloats.com
-    on_build_success: true|false
-    on_build_failure: true|false
-    on_build_status_changed: true|false
+    -
+        provider: Email
+        to:
+            - soumyajit.dutta@nowfloats.com
+            - khaja.nizamuddin@nowfloats.com
+        on_build_success: false
+        on_build_failure: true
+        on_build_status_changed: true
