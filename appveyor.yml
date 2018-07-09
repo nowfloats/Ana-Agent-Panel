@@ -35,8 +35,8 @@ build_script:
     - cd release
     # - 'aws s3 cp latest.yml s3://ana-content/cdn/dist/agent-panel/win-x64/ --acl public-read'
     - cd ..
-    - 'aws s3 cp release s3://ana-content/cdn/dist/agent-panel/win-x64/ --include "*.yml" --exclude "*" --recursive --acl public-read'
-    - 'aws s3 cp release s3://ana-content/cdn/dist/agent-panel/win-x64/ --include "*.exe*" --exclude "*" --recursive --acl public-read'
+    - 'aws s3 cp release s3://ana-content/cdn/dist/agent-panel/win-x64/ --exclude "*" --include "*.yml" --recursive --acl public-read'
+    - 'aws s3 cp release s3://ana-content/cdn/dist/agent-panel/win-x64/ --exclude "*" --include "*.exe*" --recursive --acl public-read'
     - 'ECHO "File upload to S3 Successfull"'
 cache:
     - 'node_modules -> package.json'
