@@ -15,7 +15,7 @@ import { ANAChatMessage } from "app/shared/model/ana-chat.models";
 @Injectable()
 export class DataService {
 
-	baseURL: string;
+    baseURL: string;
 	constructor(private http: Http, private config: ConfigService, private router: Router) { }
 
 	private getHeaders() {
