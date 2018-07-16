@@ -72,6 +72,7 @@
                             <img class="rounded-circle max-w-40" src="assets/img/profiles/avatar.png" />
                             <span class="display-name">{{selectedCustomer.customerId}}</span>
                             <span *ngIf="selectedCustomer && usersTyping[selectedCustomer.customerId]">Typing...</span>
+                            <span *ngIf="getConnectionStatus()" style="color:crimson">Lost Internet Connection! Trying to Reconnect</span>
                         </a>
                     </li>
                 </ul>

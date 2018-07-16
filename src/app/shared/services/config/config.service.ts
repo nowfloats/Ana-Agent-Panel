@@ -12,7 +12,7 @@ export class ConfigService {
 
 	constructor() {
 		this.app = {
-			name: "ANA Chat Panel",
+            name: "ANA Chat Panel",
 			webSocketEndPoint: "http://anachatagents-dev.2bm4ipugmm.ap-south-1.elasticbeanstalk.com/chatagents",
 			apiGatewayEndPoint: "http://chat-dev.nowfloatsdev.com",
 		};
