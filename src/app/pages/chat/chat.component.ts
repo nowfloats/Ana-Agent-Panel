@@ -1,6 +1,6 @@
 import {
 	Component,
-    OnInit,
+	OnInit,
 	trigger,
 	state,
 	style,
@@ -41,8 +41,8 @@ import { EndChatComponent } from "app/shared/components/end-chat/end-chat.compon
 
 export class ChatComponent implements OnInit, OnDestroy {
 	connect: boolean = true;
-    chatConnected = true;
-    
+	chatConnected = true;
+
 	@ViewChild("leftSidenav2") leftSidenav2: MdSidenav;
 	@ViewChild("chatProfile") chatProfile: TemplateRef<any>;
 	navMode = "side";
@@ -153,7 +153,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 					this.scrollActiveChatToBottom();
 				}
 			};
-        }
+		}
 
 		this.stompService.handleNewChat = (custInfo) => {
 			this.customersList.unshift(custInfo);
@@ -171,20 +171,20 @@ export class ChatComponent implements OnInit, OnDestroy {
 			}
 		};
 
-        this.stompService.handleConnect = () => {
-            this.dataService.getChatDetails(0, 10000, null, this.configService.profile.loginData.businessId, 0).subscribe((resData) => {
-                if (resData.error) {
-                    this.infoDialog.alert('Unable to get the chats', resData.error.message);
-                } else {
-                    this.stompService.allChatsSubscription(resData.data.content);
-                }
-                this.loadChats();
-                
-            });
-        };
+		this.stompService.handleConnect = () => {
+			this.dataService.getChatDetails(0, 10000, null, this.configService.profile.loginData.businessId, 0).subscribe((resData) => {
+				if (resData.error) {
+					this.infoDialog.alert('Unable to get the chats', resData.error.message);
+				} else {
+					this.stompService.allChatsSubscription(resData.data.content);
+				}
+				this.loadChats();
+
+			});
+		};
 
 		this.stompService.handleAck = (custId: string, ackId: string, delivered?: boolean) => {
-            try {
+			try {
 				if (this.chatThreads[custId]) {
 					if (delivered) {
 						let filteredMsgs = this.chatThreads[custId].filter(x => x.meta.id == ackId) || this.chatThreads[custId].filter(x => x.meta.responseTo == ackId);
@@ -202,7 +202,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 			} catch (e) {
 				console.error(e);
 			}
-        };
+		};
 
 		this.stompService.handleTyping = (custId: string) => {
 			if (this.typingTimer) {
@@ -221,16 +221,22 @@ export class ChatComponent implements OnInit, OnDestroy {
 		} catch (e) {
 			console.log(e);
 		}
-    }
+	}
 
-    getConnectionStatus() {
-        if (this.stompService && this.stompService.connectionStatus) {
-            switch (this.stompService.connectionStatus) {
-                case StompConnectionStatus.Connected: return false;
-                case StompConnectionStatus.Disconnected: return (this.stompService.disconnectionType === DisconnectionType.Network) ? true :  false;
-            }
-        }
-    }
+	getConnectionStatus() {
+		if (this.stompService && this.stompService.connectionStatus) {
+			switch (this.stompService.connectionStatus) {
+				case StompConnectionStatus.Connected: return false;
+				case StompConnectionStatus.Disconnected: return (this.stompService.disconnectionType === DisconnectionType.Network) ? true : false;
+			}
+		}
+	}
+
+	stompServiceConnected() {
+		if (this.stompService && this.stompService.connectionStatus == StompConnectionStatus.Connected)
+			return true;
+		return false;
+	}
 
 	//cust[0].customerId, this.msgPreviewText(msg)
 	newMessageNotifyUser(title: string = "", msg: string = "") {
@@ -254,7 +260,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 	typingTimer: NodeJS.Timer;
 	usersTyping: {
 		[custId: string]: boolean;
-    } = {};
+	} = {};
 
 	endChat() {
 		if (this.selectedCustomer) {
@@ -267,17 +273,17 @@ export class ChatComponent implements OnInit, OnDestroy {
 				}
 			});
 		}
-    }
-    chatConnectDisconnect(event) {
-        this.stompService.disconnectionType = DisconnectionType.Manual
+	}
+	chatConnectDisconnect(event) {
+		this.stompService.disconnectionType = DisconnectionType.Manual
 		if (!this.chatConnected) {
 			this.connect = true;
-            this.loadChats();
+			this.loadChats();
 			this.stompService.connect({
 				debug: true,
 				endpoint: this.configService.app.webSocketEndPoint
-            });
-            this.stompService.storeNetworkConnectivityLogs(DisconnectionType.Manual,StompConnectionStatus.Connected)
+			});
+			this.stompService.storeNetworkConnectivityLogs(DisconnectionType.Manual, StompConnectionStatus.Connected)
 		}
 		else {
 			this.connect = false;
@@ -452,7 +458,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 		this.logout();
 	}
 
-    stompSetup() {
+	stompSetup() {
 		this.stompService.connect({
 			debug: true,
 			endpoint: this.configService.app.webSocketEndPoint
@@ -465,17 +471,26 @@ export class ChatComponent implements OnInit, OnDestroy {
 	}
 
 	loadChats() {
+		let selectedCustomerId = this.selectedCustomer ? this.selectedCustomer.customerId : undefined;
+
 		this.dataService.getChatDetails(this.page, this.size, this.searchText, this.configService.profile.loginData.businessId).subscribe((resData) => {
 			if (resData.error) {
 				this.infoDialog.alert('Unable to get the chats', resData.error.message);
-            } else {
+			} else {
 				this.customersList = resData.data.content.sort((a, b) => a.lastMessageTime - b.lastMessageTime);
 				this.page = resData.data.number;
-                this.totalChatPages = resData.data.totalPages;
-                this.selectedCustomer = this.customersList[0];
-                this.customersList.forEach(x => {
-                    this.chatThreads[x.customerId] = x.messages.content.reverse();
-                });
+				this.totalChatPages = resData.data.totalPages;
+
+				this.customersList.forEach(x => {
+					this.chatThreads[x.customerId] = [];
+				});
+
+				if (selectedCustomerId) {
+					let selectedCustList = this.customersList.filter(x => x.customerId == selectedCustomerId);
+					if (selectedCustList && selectedCustList.length > 0) {
+						this.onCustomerSelected(selectedCustList[0]);
+					}
+				}
 			}
 		});
 	}

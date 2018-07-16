@@ -9,10 +9,15 @@
 @import "./app/shared/styles/app";
 
 
-//Explicit 
-button, input[type=button], a{
- cursor: pointer;
+//Explicit
+button, input[type=button], a {
+	cursor: pointer;
 }
-input.mat-input-element{
-  margin-top: 1px !important; 
+
+input.mat-input-element {
+	margin-top: 1px !important;
+}
+
+.yellow .mat-input-placeholder {
+	color: #d6c416 !important;
 }
